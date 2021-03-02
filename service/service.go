@@ -21,9 +21,31 @@ type PathDetailBean struct {
 	Path       string
 }
 
+// 获取这个路径下面的文件列表
+type FileDetailBean struct {
+	Name       string
+	ParentPath string
+	Type       string
+	CreateTime string
+	UpdateTime string
+	Path       string
+}
+
+type Path struct {
+	Name   string // 路径地址
+	FileId string // 路径的 fileId
+	IsDir  bool   // 类型，
+}
+
 // 用来存储 path 与 fileId 的对应, 会同步到 pathLog.json 里面
-var pathMap = map[string]string{
-	"/": "root",
+// 默认是 root 文件夹
+var AliDriverRootPath Path = Path{
+	Name:   "/",
+	FileId: "root",
+	IsDir:  true,
+}
+var pathMap = map[string]Path{
+	"/": AliDriverRootPath,
 }
 
 // 格式化 query 参数
@@ -42,11 +64,8 @@ func FormatPathQuery(path string) string {
 	return path
 }
 
-// 通过一个 path, 如果 /share/wx, 来获取这个 path 下面对应的 PathDetailBean
-// 如果可以找到的话, 就返回 PathDetailBean, true, 如果不行的话返回 nil, false
-// 如果 api 请求失败的话, 会返回 [], true
-func GetPathDetail(path string) ([]PathDetailBean, bool) {
-
+// 路径是否正确
+func IsPathTrue(path string) bool {
 	// 载入本地配置文件
 	if !loadPathFromLocalFlag {
 		LoadPathMapFromLocal()
@@ -57,12 +76,65 @@ func GetPathDetail(path string) ([]PathDetailBean, bool) {
 	fmt.Println("请求", path)
 	if _, ok := pathMap[path]; !ok {
 		fmt.Println("无法从该路径找到对应的 fileId: ", path)
-		return nil, false
+		return false
 	}
-	folderList := api.FolderList(pathMap[path])
+	return true
+}
+
+// 是否为文件
+// 返回参数1代表是否是文件， 参数2代表路径是否正确
+func IsPathIsFile(path string) bool {
+	// 载入本地配置文件
+	if !loadPathFromLocalFlag {
+		LoadPathMapFromLocal()
+		loadPathFromLocalFlag = true
+	}
+	return !pathMap[path].IsDir
+}
+
+func GetFileDetail(path string) *FileDetailBean {
+	// 载入本地配置文件
+	if !loadPathFromLocalFlag {
+		LoadPathMapFromLocal()
+		loadPathFromLocalFlag = true
+	}
+	split := strings.Split(path, "/")
+	parentPath := path[0 : len(path)-len(split[len(split)-1])]
+	parentPath = FormatPathQuery(parentPath)
+
+	detail := GetPathDetail(parentPath)
+	for _, path := range detail {
+		// 文件名判断
+		if path.Name == split[len(split)-1] && path.Type == "file" {
+			return &FileDetailBean{
+				Name:       path.Name,
+				ParentPath: path.ParentPath,
+				Type:       "file",
+				CreateTime: path.CreateTime,
+				UpdateTime: path.UpdateTime,
+				Path:       path.Path,
+			}
+
+		}
+	}
+	return nil
+}
+
+// 通过一个 path, 如果 /share/wx, 来获取这个 path 下面对应的 PathDetailBean
+// 如果可以找到的话, 就返回 PathDetailBean, true, 如果不行的话返回 nil, false
+// 如果 api 请求失败的话, 会返回 [], true
+func GetPathDetail(path string) []PathDetailBean {
+
+	// 载入本地配置文件
+	if !loadPathFromLocalFlag {
+		LoadPathMapFromLocal()
+		loadPathFromLocalFlag = true
+	}
+
+	folderList := api.FolderList(pathMap[path].FileId)
 	if folderList == nil || folderList.Items == nil {
 		fmt.Println("路径:", path, "获取 folderList 失败")
-		return make([]PathDetailBean, 0), true
+		return make([]PathDetailBean, 0)
 	}
 	result := make([]PathDetailBean, 0)
 
@@ -84,21 +156,29 @@ func GetPathDetail(path string) ([]PathDetailBean, bool) {
 			ParentPath: "",
 		})
 
-		// 更新缓存, 如果是文件夹的话, 拼接路径
-		if fileMsgBean.Type == "folder" {
-			// 如果已有缓存
-			if _, ok := pathMap[filePath]; ok {
-				if pathMap[filePath] != fileMsgBean.FileID {
-					// 需要更新缓存
-					pathMapUpdateFlag = true
-					pathMap[filePath] = fileMsgBean.FileID
-				}
-			} else {
-				// 需要加入缓存
+		// 更新缓存, 无论是文件还是文件夹都会缓存下来
+		if _, ok := pathMap[filePath]; ok {
+			if pathMap[filePath].FileId != fileMsgBean.FileID ||
+				pathMap[filePath].Name != fileMsgBean.Name ||
+				pathMap[filePath].IsDir != (fileMsgBean.Type == "folder") {
+				// 需要更新缓存
 				pathMapUpdateFlag = true
-				pathMap[filePath] = fileMsgBean.FileID
+				pathMap[filePath] = Path{
+					Name:   fileMsgBean.Name,
+					FileId: fileMsgBean.FileID,
+					IsDir:  fileMsgBean.Type == "folder",
+				}
+			}
+		} else {
+			// 需要加入缓存
+			pathMapUpdateFlag = true
+			pathMap[filePath] = Path{
+				Name:   fileMsgBean.Name,
+				FileId: fileMsgBean.FileID,
+				IsDir:  fileMsgBean.Type == "folder",
 			}
 		}
+
 	}
 
 	if pathMapUpdateFlag {
@@ -114,7 +194,7 @@ func GetPathDetail(path string) ([]PathDetailBean, bool) {
 	})
 
 	// 构造 PathDetailBean 返回
-	return result, true
+	return result
 }
 
 // 构造路径面包屑
@@ -171,8 +251,8 @@ func LoadPathMapFromLocal() {
 			}
 		}
 	}
-	pathMap["/"] = "root"
-	pathMap["/root"] = "root"
+	pathMap["/"] = AliDriverRootPath
+	pathMap["/root"] = AliDriverRootPath
 }
 
 func savePathMapToLocal() {

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-cmn-Hans">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no"/>
+    <meta name="renderer" content="webkit"/>
+    <meta name="force-rendering" content="webkit"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+
+    <!-- MDUI CSS -->
+    <link rel="stylesheet" href="./css/mdui.css"/>
+    <title>Andex云盘</title>
+</head>
+<body>
+<div class="mdui-appbar">
+    <div class="mdui-toolbar mdui-color-theme">
+        <a href="javascript:;" class="mdui-btn mdui-btn-icon">
+        </a>
+        <a href="javascript:;" class="mdui-typo-headline">Andex云盘</a>
+        <a href="javascript:;" class="mdui-typo-title">欢迎光临!</a>
+        <div class="mdui-toolbar-spacer"></div>
+    </div>
+</div>
+
+<div class="mdui-container">
+
+    <div class="mdui-card mdui-m-t-4">
+        <div>
+            文件名：你好
+        </div>
+
+    </div>
+
+</div>
+
+<!-- MDUI JavaScript -->
+<script type="javascript" src="./js/mdui.js"></script>
+<script>
+
+    function gotoDir(path) {
+        if (path === null || path === undefined){
+            return
+        }
+        console.log("goto path: " + path)
+        if (path === "/"){
+            window.location.href= window.location.origin
+        } else {
+            window.location.search =  "?p=" + path
+        }
+    }
+
+</script>
+</body>
+</html>
