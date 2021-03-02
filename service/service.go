@@ -26,6 +26,22 @@ var pathMap = map[string]string{
 	"/": "root",
 }
 
+// 格式化 query 参数
+func FormatPathQuery(path string) string {
+	// 参数格式化
+	path = strings.ReplaceAll(path, "//", "/")
+	if path[0] != '/' {
+		path = "/" + path
+	}
+	if path[len(path)-1] == '/' {
+		path = path[0 : len(path)-1]
+	}
+	if path == "" {
+		path = "/"
+	}
+	return path
+}
+
 // 通过一个 path, 如果 /share/wx, 来获取这个 path 下面对应的 PathDetailBean
 // 如果可以找到的话, 就返回 PathDetailBean, true, 如果不行的话返回 nil, false
 // 如果 api 请求失败的话, 会返回 [], true
@@ -100,6 +116,40 @@ func GetPathDetail(path string) ([]PathDetailBean, bool) {
 	// 构造 PathDetailBean 返回
 	return result, true
 }
+
+// 构造路径面包屑
+type NavPath struct {
+	Name string
+	Path string
+	Last bool
+}
+
+func GetNavPathList(path string) []NavPath {
+	split := strings.Split(path, "/")
+	navPathList := make([]NavPath, 0)
+	navPathList = append(navPathList, NavPath{
+		Name: "首页",
+		Path: "/",
+		// 判断是否是首页请求
+		Last: path == "/" || path == "/root",
+	})
+	navPathNow := ""
+	for i, navPathTemp := range split {
+		if navPathTemp == "" {
+			continue
+		}
+		navPathNow = navPathNow + "/" + navPathTemp
+		navPathList = append(navPathList, NavPath{
+			Name: navPathTemp,
+			Path: navPathNow,
+			Last: i >= (len(split) - 1),
+		})
+	}
+
+	return navPathList
+}
+
+//================================== FileId 缓存 相关逻辑==================================
 
 const localPathMapConf = "./pathMap.json"
 
