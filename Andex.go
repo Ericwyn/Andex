@@ -4,24 +4,29 @@ import (
 	"fmt"
 	"github.com/Ericwyn/Andex/api"
 	"github.com/Ericwyn/Andex/conf"
+	"github.com/Ericwyn/Andex/controller"
 	"github.com/Ericwyn/GoTools/file"
+	"github.com/gin-gonic/gin"
+	"net/http"
 	"os"
+	"time"
 )
 
 func main() {
 
-	//loadConfig()
-	conf.LoadConfFromFile()
+	loadConfig()
+	//conf.LoadConfFromFile()
+	//
+	//info := api.UserInfo()
+	//fmt.Println("用户昵称:", info.NickName)
 
-	info := api.UserInfo()
-	fmt.Println("用户昵称:", info.NickName)
+	////// 获取文件夹文件列表
+	//list := api.FolderList("root")
+	//for _,item := range list.Items {
+	//	fmt.Println("name:", item.Name, ", type:", item.Type, ", id:", item.FileID)
+	//}
 
-
-	// 获取文件夹文件列表
-	list := api.FolderList("root")
-	for _,item := range list.Items {
-		fmt.Println("name:", item.Name, ", type:", item.Type, ", id:", item.FileID)
-	}
+	startServer()
 
 }
 
@@ -46,5 +51,17 @@ func loadConfig() {
 		fmt.Println("RefreshToken 错误或已过期")
 		os.Exit(0)
 	}
+}
 
+func startServer() {
+	gin.SetMode(gin.ReleaseMode)
+
+	s := &http.Server{
+		Addr:           ":8080",
+		Handler:        controller.NewMux(),
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+	_ = s.ListenAndServe()
 }

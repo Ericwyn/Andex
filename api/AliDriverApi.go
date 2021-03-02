@@ -144,8 +144,8 @@ type RefreshTokenBean struct {
 	ExpireTime   time.Time `json:"expire_time"`
 	State        string    `json:"state"`
 
-	DefaultDriveID     string        `json:"default_drive_id"`
-	DefaultSboxDriveID string        `json:"default_sbox_drive_id"`
+	DefaultDriveID     string `json:"default_drive_id"`
+	DefaultSboxDriveID string `json:"default_sbox_drive_id"`
 	//Role               string        `json:"role"`
 	//Status             string        `json:"status"`
 
@@ -166,9 +166,9 @@ func RefreshToken() {
 	var result *RefreshTokenBean = nil
 
 	ajax.Send(ajax.Request{
-		Url : "https://websv.aliyundrive.com/token/refresh",
+		Url:    "https://websv.aliyundrive.com/token/refresh",
 		Method: ajax.POST,
-		Json:   map[string]interface{}{
+		Json: map[string]interface{}{
 			"refresh_token": conf.ConfigNow.RefreshToken,
 		},
 		Header: map[string]string{
@@ -177,7 +177,7 @@ func RefreshToken() {
 		Success: func(response *ajax.Response) {
 			//fmt.Println("code:", response.Code)
 			//fmt.Println("response:")
-			fmt.Println(response.Body)
+			//fmt.Println(response.Body)
 			err := json.Unmarshal([]byte(response.Body), &result)
 			if err != nil {
 				fmt.Println("JSON 解析发生错误", err)
