@@ -8,11 +8,6 @@ import (
 
 // 设置 API 路由
 func initAPI(router *gin.Engine) {
-	//router.POST("api/getComm", GetComm)
-	//router.POST("api/uploadComm", UploadComm)
-	//router.POST("api/initComm", InitComm)
-	//router.POST("api/likeComm", LikeComm)
-	//
 	router.GET("/", pages)
 }
 
@@ -35,7 +30,7 @@ func loadStaticPath(router *gin.Engine) {
 	children := staticDir.Children()
 	for _, child := range children {
 		if child.IsDir() {
-			fmt.Println("load static router:", child.Name(), "->", staticDirPath+"/"+child.Name())
+			fmt.Println("load static router:", "/"+child.Name(), "->", staticDirPath+"/"+child.Name())
 			router.Static(child.Name(), staticDirPath+"/"+child.Name())
 		}
 	}

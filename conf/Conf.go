@@ -3,7 +3,7 @@ package conf
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Ericwyn/Andex/fileIO"
+	"github.com/Ericwyn/Andex/storage"
 )
 
 const ConfigFilePath = "./config.json"
@@ -26,7 +26,7 @@ var ConfigNow = AndexConf{
 func LoadConfFromFile() {
 	//fi, err := os.Open(ConfigFilePath)
 
-	logFile, err := fileIO.ReadFileAsString(ConfigFilePath)
+	logFile, err := storage.ReadFileAsString(ConfigFilePath)
 
 	if err != nil {
 		panic(err)
@@ -51,7 +51,7 @@ func SaveConf() {
 		fmt.Println("序列化配置发生错误", err)
 	} else {
 
-		err := fileIO.WriteStringToFile(ConfigFilePath, string(bytes), false)
+		err := storage.WriteStringToFile(ConfigFilePath, string(bytes), false)
 		if err != nil {
 			fmt.Println("配置文件更新失败", err)
 		} else {

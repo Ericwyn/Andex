@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Ericwyn/Andex/api"
-	"github.com/Ericwyn/Andex/fileIO"
+	"github.com/Ericwyn/Andex/storage"
+	"github.com/Ericwyn/GoTools/date"
 	"github.com/Ericwyn/GoTools/file"
+	"sort"
 	"strings"
 )
 
@@ -14,6 +16,9 @@ type PathDetailBean struct {
 	Name       string
 	ParentPath string
 	Type       string
+	CreateTime string
+	UpdateTime string
+	Path       string
 }
 
 // 用来存储 path 与 fileId 的对应, 会同步到 pathLog.json 里面
@@ -30,18 +35,6 @@ func GetPathDetail(path string) ([]PathDetailBean, bool) {
 	if !loadPathFromLocalFlag {
 		LoadPathMapFromLocal()
 		loadPathFromLocalFlag = true
-	}
-
-	// 去除最后的 /
-	path = strings.ReplaceAll(path, "//", "/")
-	if path[0] != '/' {
-		path = "/" + path
-	}
-	if path[len(path)-1] == '/' {
-		path = path[0 : len(path)-1]
-	}
-	if path == "" {
-		path = "/"
 	}
 
 	// 查找能否从 pathMap 里面找到这个 path 对应的 fileId
@@ -61,28 +54,33 @@ func GetPathDetail(path string) ([]PathDetailBean, bool) {
 
 	// 更新 pathMap 缓存, 刷新到本地
 	for _, fileMsgBean := range folderList.Items {
+
+		filePath := path + "/" + fileMsgBean.Name
+		filePath = strings.ReplaceAll(filePath, "//", "/")
+
 		// 构造 PathDetailBean
 		result = append(result, PathDetailBean{
 			Name:       fileMsgBean.Name,
 			Type:       fileMsgBean.Type,
+			Path:       filePath,
+			CreateTime: date.Format(fileMsgBean.CreatedAt, "yyyy-MM-dd HH:mm"),
+			UpdateTime: date.Format(fileMsgBean.UpdatedAt, "yyyy-MM-dd HH:mm"),
 			ParentPath: "",
 		})
 
 		// 更新缓存, 如果是文件夹的话, 拼接路径
 		if fileMsgBean.Type == "folder" {
-			pathMapKey := path + "/" + fileMsgBean.Name
-			pathMapKey = strings.ReplaceAll(pathMapKey, "//", "/")
 			// 如果已有缓存
-			if _, ok := pathMap[pathMapKey]; ok {
-				if pathMap[pathMapKey] != fileMsgBean.FileID {
+			if _, ok := pathMap[filePath]; ok {
+				if pathMap[filePath] != fileMsgBean.FileID {
 					// 需要更新缓存
 					pathMapUpdateFlag = true
-					pathMap[pathMapKey] = fileMsgBean.FileID
+					pathMap[filePath] = fileMsgBean.FileID
 				}
 			} else {
 				// 需要加入缓存
 				pathMapUpdateFlag = true
-				pathMap[pathMapKey] = fileMsgBean.FileID
+				pathMap[filePath] = fileMsgBean.FileID
 			}
 		}
 	}
@@ -93,6 +91,11 @@ func GetPathDetail(path string) ([]PathDetailBean, bool) {
 		// TODO 清除旧的缓存
 		savePathMapToLocal()
 	}
+
+	// result 排序
+	sort.Slice(result, func(i, j int) bool {
+		return strings.Compare(result[i].Name, result[j].Name) < 0
+	})
 
 	// 构造 PathDetailBean 返回
 	return result, true
@@ -108,7 +111,7 @@ func LoadPathMapFromLocal() {
 		fmt.Println("path map 缓存文件不存在")
 		return
 	} else {
-		pathMapString, err := fileIO.ReadFileAsString(localPathMapConf)
+		pathMapString, err := storage.ReadFileAsString(localPathMapConf)
 		if err != nil {
 			fmt.Println("读取 path map 缓存文件失败", err)
 		} else {
@@ -127,7 +130,7 @@ func savePathMapToLocal() {
 	if err != nil {
 		fmt.Println("输出 path map 缓存到本地时候发生格式化错误", err)
 	} else {
-		err := fileIO.WriteStringToFile(localPathMapConf, string(jsonRes), false)
+		err := storage.WriteStringToFile(localPathMapConf, string(jsonRes), false)
 		if err != nil {
 			fmt.Println("输出 path map 缓存到本地时候发生 io 错误", err)
 		} else {

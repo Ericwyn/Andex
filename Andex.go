@@ -14,10 +14,16 @@ import (
 
 func main() {
 
-	loadConfig()
-	//conf.LoadConfFromFile()
+	//loadConfig()
+	conf.LoadConfFromFile()
 	//
-	//info := api.UserInfo()
+	info := api.UserInfo()
+	if info != nil {
+		fmt.Println("token 未过期")
+	} else {
+		fmt.Println("token 已过期")
+		loadConfig()
+	}
 	//fmt.Println("用户昵称:", info.NickName)
 
 	////// 获取文件夹文件列表
@@ -54,7 +60,7 @@ func loadConfig() {
 }
 
 func startServer() {
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.DebugMode)
 
 	s := &http.Server{
 		Addr:           ":8080",
