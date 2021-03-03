@@ -8,7 +8,18 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
 
     <link rel="stylesheet" href="./css/mdui.css"/>
-
+    <style>
+        .text-auto-wrap {
+            word-break:normal;
+            width:auto;
+            display:block;
+            /*white-space:pre-wrap;*/
+            word-wrap : break-word ;
+            overflow: hidden ;
+            white-space:normal
+            /*word-wrap:break-word*/
+        }
+    </style>
     <title>Andex云盘</title>
 </head>
 <body>
@@ -43,60 +54,87 @@
     </div>
 
 
-    <div class="mdui-table-fluid mdui-m-t-2">
-        <table class="mdui-table mdui-table-hoverable" id="test">
-            <thead>
-            <tr>
-                <th>名称</th>
-                <th class="table-col-create-time">创建</th>
-                <th class="table-col-update-time">更新</th>
-                <th>大小</th>
-            </tr>
-            </thead>
-            <tbody>
-            <!--
-            <tr>
-                <td>源码备份</td>
-                <td>文件夹</td>
-                <td>2020.03.02</td>
-                <td>
-                    <button class="mdui-btn">下载</button>
-                </td>
-            </tr>
-            -->
-            {{range $i, $detail := .pathDetail}}
-                {{if eq $detail.Type "folder"}}
-                    <tr data-href="{{$detail.Path}}" data-type="{{$detail.Type}}" onclick="gotoDir('{{$detail.Path}}')">
-                        <td>
-                            <i class="mdui-icon material-icons mdui-m-r-1">folder</i>
-                            <span>
-                                {{$detail.Name}}
-                            </span>
-                        </td>
-                        <td class="table-col-create-time" style="width: 15%;">{{$detail.CreateTime}}</td>
-                        <td class="table-col-update-time" style="width: 15%;">{{$detail.UpdateTime}}</td>
-                        <td style="width: 10%;">{{$detail.Size}}</td>
-                    </tr>
-                {{else}}
-                    <tr data-href="{{$detail.Path}}" data-type="{{$detail.Type}}" onclick="gotoDir('{{$detail.Path}}')">
-                        <td>
-                            <i class="mdui-icon material-icons mdui-m-r-1">insert_drive_file</i>
-                            <span>
-                                {{$detail.Name}}
-                            </span>
-                        </td>
-                        <td class="table-col-create-time" style="width: 15%;">{{$detail.CreateTime}}</td>
-                        <td class="table-col-update-time" style="width: 15%;">{{$detail.UpdateTime}}</td>
-                        <td style="width: 10%;">{{$detail.Size}}</td>
-                    </tr>
+    <div class="mdui-table-fluid mdui-m-y-2 ">
 
+        {{if .isMobil}}
+            <table class="mdui-table mdui-table-hoverable">
+                {{range $i, $detail := .pathDetail}}
+                    <ul class="mdui-list mdui-list-dense"  onclick="gotoDir('{{$detail.Path}}')">
+                        <li class="mdui-list-item mdui-ripple" >
+                            <div class="mdui-list-item-avatar mdui-color-white mdui-text-color-blue">
+                                {{if eq $detail.Type "folder"}}
+                                    <i class="mdui-icon material-icons mdui-m-r-1" style="font-size: 35px">folder</i>
+                                {{else}}
+                                    <i class="mdui-icon material-icons mdui-m-r-1" style="font-size: 35px">
+                                        insert_drive_file
+                                    </i>
+                                {{end}}
+                            </div>
+                            <div class="mdui-list-item-content">
+                                <div class="mdui-list-item-title" style="font-size: 18px;">
+                                    <span class="text-auto-wrap">
+                                        {{$detail.Name}}
+                                    </span>
+                                </div>
+                                <div class="mdui-list-item-text mdui-list-item-two-line" style="height: 16px;">
+                                    {{if eq $detail.Type "folder"}}
+                                        <span class="mdui-text-color-theme-text">{{$detail.UpdateTime}}</span>
+                                    {{else}}
+                                        <span class="mdui-text-color-theme-text">{{$detail.UpdateTime}} | {{$detail.Size}}</span>
+                                    {{end}}
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
                 {{end}}
-            {{end}}
+            </table>
 
-            <tr></tr>
+        {{else}}
+            <table class="mdui-table mdui-table-hoverable">
+                <thead>
+                <tr>
+                    <th>名称</th>
+                    <th class="table-col-create-time">创建</th>
+                    <th class="table-col-update-time">更新</th>
+                    <th>大小</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{range $i, $detail := .pathDetail}}
+                    {{if eq $detail.Type "folder"}}
+                        <tr data-href="{{$detail.Path}}" data-type="{{$detail.Type}}" onclick="gotoDir('{{$detail.Path}}')">
+                            <td>
+                                <i class="mdui-icon material-icons mdui-m-r-1">folder</i>
+                                <span>
+                                    {{$detail.Name}}
+                                </span>
+                            </td>
+                            <td class="table-col-create-time" style="width: 15%;">{{$detail.CreateTime}}</td>
+                            <td class="table-col-update-time" style="width: 15%;">{{$detail.UpdateTime}}</td>
+                            <td style="width: 5%;">{{$detail.Size}}</td>
+                        </tr>
+                    {{else}}
+                        <tr data-href="{{$detail.Path}}" data-type="{{$detail.Type}}" onclick="gotoDir('{{$detail.Path}}')">
+                            <td>
+                                <i class="mdui-icon material-icons mdui-m-r-1">insert_drive_file</i>
+                                <span>
+                                    {{$detail.Name}}
+                                </span>
+                            </td>
+                            <td class="table-col-create-time" style="width: 15%;">{{$detail.CreateTime}}</td>
+                            <td class="table-col-update-time" style="width: 15%;">{{$detail.UpdateTime}}</td>
+                            <td style="width: 5%;">{{$detail.Size}}</td>
+                        </tr>
+                    {{end}}
+                {{end}}
 
-            </tbody>
-        </table>
+                <tr></tr>
+
+                </tbody>
+            </table>
+        {{end}}
+
+
     </div>
 </div>
 

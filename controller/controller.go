@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/Ericwyn/Andex/service"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 // 文件/文件夹页面获取接口
@@ -58,6 +59,7 @@ func pages(ctx *gin.Context) {
 				"pathDetail":    pathDetail,
 				"navPathList":   navPathList,
 				"navPathLength": len(navPathList),
+				"isMobil":       isFromMobile(ctx.GetHeader("User-Agent")),
 			})
 			return
 		} else {
@@ -100,5 +102,22 @@ func download(ctx *gin.Context) {
 		ctx.String(200, "非文件路径")
 		return
 	}
+}
 
+func isFromMobile(userAgent string) bool {
+	if len(userAgent) == 0 {
+		return false
+	}
+
+	isMobile := false
+	mobileKeywords := []string{"Mobile", "Android", "Silk/", "Kindle",
+		"BlackBerry", "Opera Mini", "Opera Mobi"}
+
+	for i := 0; i < len(mobileKeywords); i++ {
+		if strings.Contains(userAgent, mobileKeywords[i]) {
+			isMobile = true
+			break
+		}
+	}
+	return isMobile
 }
