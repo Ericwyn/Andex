@@ -5,6 +5,7 @@ import (
 	"github.com/Ericwyn/Andex/api"
 	"github.com/Ericwyn/Andex/conf"
 	"github.com/Ericwyn/Andex/controller"
+	"github.com/Ericwyn/Andex/service"
 	"github.com/Ericwyn/GoTools/file"
 	"github.com/gin-gonic/gin"
 	"github.com/go-co-op/gocron"
@@ -21,12 +22,14 @@ func main() {
 	//	fmt.Println("name:", item.Name, ", type:", item.Type, ", id:", item.FileID)
 	//}
 
+	// 载入配置
 	loadConfig()
 
+	// 运行配置
 	runCorn()
 
+	// 启动 service
 	startServer()
-
 }
 
 func runCorn() {
@@ -69,6 +72,12 @@ func loadConfig() {
 		api.RefreshToken()
 	}
 
+	// 验证根目录配置
+	pathSetTrue := service.CheckRootPathSet()
+	if !pathSetTrue {
+		fmt.Println("Andex RootPath 参数设置错误, 请设置为正确的网盘文件夹路径")
+		os.Exit(0)
+	}
 }
 
 func startServer() {

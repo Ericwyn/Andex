@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Ericwyn/Andex/conf"
 	"sort"
 	"strings"
 
@@ -44,14 +45,8 @@ type Path struct {
 
 // 用来存储 path 与 fileId 的对应, 会同步到 pathLog.json 里面
 // 默认是 root 文件夹
-var AliDriverRootPath Path = Path{
-	Name:   "/",
-	FileId: "root",
-	IsDir:  true,
-}
-var pathMap = map[string]Path{
-	"/": AliDriverRootPath,
-}
+var driverRootPath *Path
+var pathMap = map[string]Path{}
 
 // 格式化 query 参数
 func FormatPathQuery(path string) string {
@@ -67,6 +62,57 @@ func FormatPathQuery(path string) string {
 		path = "/"
 	}
 	return path
+}
+
+// 检查 config.json 当中的 rootPath 设置是否正确
+func CheckRootPathSet() bool {
+
+	conf.ConfigNow.RootPath = FormatPathQuery(conf.ConfigNow.RootPath)
+
+	fmt.Println("检查 RootPath 设置:", conf.ConfigNow.RootPath)
+
+	if conf.ConfigNow.RootPath == "" || conf.ConfigNow.RootPath == "/" {
+		return true
+	} else {
+		pathSplit := strings.Split(conf.ConfigNow.RootPath, "/")
+		fileIdNow := "root"
+		fmt.Print("验证文件夹路径: ")
+		for _, pathName := range pathSplit {
+			if pathName == "" {
+				fileIdNow = "root"
+				continue
+			}
+			folderList := api.FolderList(fileIdNow)
+
+			pathFlag := false
+
+			for _, fileMsg := range folderList.Items {
+				if fileMsg.Type == "folder" && fileMsg.Name == pathName {
+					fmt.Print(" -> ", fileMsg.Name)
+					fileIdNow = fileMsg.FileID
+					pathFlag = true
+					break
+				}
+			}
+			if !pathFlag {
+				fmt.Println("文件夹路径", conf.ConfigNow.RootPath, "错误, 无法找到文件夹:", pathName)
+				return false
+			}
+		}
+		fmt.Println()
+		fmt.Println("文件夹路径验证成功")
+
+		driverRootPath = &Path{
+			Name:   "/",
+			FileId: fileIdNow,
+			IsDir:  true,
+		}
+		pathMap["/"] = *driverRootPath
+		pathMap["/root"] = *driverRootPath
+		// TODO pathMap 不需要每次都全部重写
+		savePathMapToLocal()
+		return true
+	}
 }
 
 // 路径是否正确
@@ -315,8 +361,11 @@ func LoadPathMapFromLocal() {
 			}
 		}
 	}
-	pathMap["/"] = AliDriverRootPath
-	pathMap["/root"] = AliDriverRootPath
+
+	if driverRootPath != nil {
+		pathMap["/"] = *driverRootPath
+		pathMap["/root"] = *driverRootPath
+	}
 }
 
 func savePathMapToLocal() {

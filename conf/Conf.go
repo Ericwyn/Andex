@@ -14,12 +14,14 @@ type AndexConf struct {
 	RefreshToken  string `json:"refresh_token"`
 	Authorization string `json:"authorization"`
 	DriveID       string `json:"drive_id"`
+	RootPath      string `json:"root_path"`
 }
 
 var ConfigNow = AndexConf{
 	RefreshToken:  "NULL",
 	Authorization: "NULL",
 	DriveID:       "NULL",
+	RootPath:      "/",
 }
 
 // 载入配置, 程序启动时候调用
