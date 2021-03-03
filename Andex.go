@@ -43,23 +43,33 @@ func runCorn() {
 }
 
 func loadConfig() {
-	configFile := file.OpenFile(conf.ConfigFilePath)
-	if !configFile.Exits() {
+	// 创建系统配置文件夹
+	sysConfDir := file.OpenFile(conf.SysConfigDirPath)
+	sysConfDir.Mkdirs()
+
+	userConfigFile := file.OpenFile(conf.UserConfigFilePath)
+	if !userConfigFile.Exits() {
 		fmt.Println("未检测到配置文件, 创建空白配置文件")
-		conf.SaveConf()
+		conf.CreateUserConfFile()
 		os.Exit(0)
 	}
 
-	// 载入配置
+	// 载入 System 和 User 配置
 	conf.LoadConfFromFile()
-	if conf.ConfigNow.RefreshToken == "NULL" {
+	if conf.SysConfigNow.RefreshToken == "NULL" {
 		fmt.Println("RefreshToken 未配置")
 		os.Exit(0)
 	}
 
-	if conf.ConfigNow.Authorization == "NULL" {
-		fmt.Println("RefreshToken 错误或已过期")
-		os.Exit(0)
+	// api.RefreshToken() // 不需要每次启动都刷新 refreshToken 和 token
+
+	if conf.SysConfigNow.Authorization == "NULL" {
+		// 如果 Authorization 为 NULL, 先尝试刷新一遍 token
+		api.RefreshToken()
+		if conf.SysConfigNow.Authorization == "NULL" {
+			fmt.Println("token 无法获取 RefreshToken 错误或已过期")
+			os.Exit(0)
+		}
 	}
 
 	// 载入配置后验证 token 是否已过期
@@ -67,7 +77,7 @@ func loadConfig() {
 	if info != nil {
 		fmt.Println("token 未过期")
 	} else {
-		fmt.Println("token 已过期, 刷新配置")
+		fmt.Println("token 已过期, 尝试重新获取")
 		// 刷新配置
 		api.RefreshToken()
 	}

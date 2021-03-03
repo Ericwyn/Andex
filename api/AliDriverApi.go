@@ -59,7 +59,7 @@ func FolderList(parentDirId string) *FolderListBean {
 		Json: map[string]interface{}{
 			"limit":                   50,
 			"marker":                  nil,
-			"drive_id":                conf.ConfigNow.DriveID,
+			"drive_id":                conf.SysConfigNow.DriveID,
 			"parent_file_id":          parentDirId,
 			"image_thumbnail_process": "image/resize,w_160/format,jpeg",
 			"image_url_process":       "image/resize,w_1920/format,jpeg",
@@ -169,7 +169,7 @@ type RefreshTokenBean struct {
 }
 
 func RefreshToken() {
-	if conf.ConfigNow.RefreshToken == "" {
+	if conf.SysConfigNow.RefreshToken == "" {
 		fmt.Println("config.json 中没有配置 refresh token")
 		return
 	}
@@ -180,7 +180,7 @@ func RefreshToken() {
 		Url:    "https://websv.aliyundrive.com/token/refresh",
 		Method: ajax.POST,
 		Json: map[string]interface{}{
-			"refresh_token": conf.ConfigNow.RefreshToken,
+			"refresh_token": conf.SysConfigNow.RefreshToken,
 		},
 		Header: map[string]string{
 			"Content-Type": "application/json; charset=utf-8",
@@ -230,7 +230,7 @@ func GetDownloadUrlByFileIdAndFileName(fileId string, fileName string) string {
 		Url:    aliUrl + "/file/get_download_url",
 		Method: ajax.POST,
 		Json: map[string]interface{}{
-			"drive_id":   conf.ConfigNow.DriveID,
+			"drive_id":   conf.SysConfigNow.DriveID,
 			"file_id":    fileId,
 			"file_name":  fileName,
 			"expire_sec": 7200,
@@ -266,7 +266,7 @@ func buildHeader(auth bool) map[string]string {
 		"user-agent":      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36",
 	}
 	if auth {
-		res["authorization"] = "Bearer " + conf.ConfigNow.Authorization
+		res["authorization"] = "Bearer " + conf.SysConfigNow.Authorization
 	}
 
 	return res

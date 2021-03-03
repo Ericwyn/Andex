@@ -1,16 +1,13 @@
 package service
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/Ericwyn/Andex/conf"
 	"sort"
 	"strings"
 
 	"github.com/Ericwyn/Andex/api"
-	"github.com/Ericwyn/Andex/storage"
 	"github.com/Ericwyn/GoTools/date"
-	"github.com/Ericwyn/GoTools/file"
 )
 
 // 获取这个路径下面的文件列表
@@ -67,61 +64,71 @@ func FormatPathQuery(path string) string {
 // 检查 config.json 当中的 rootPath 设置是否正确
 func CheckRootPathSet() bool {
 
-	conf.ConfigNow.RootPath = FormatPathQuery(conf.ConfigNow.RootPath)
+	conf.SysConfigNow.RootPath = FormatPathQuery(conf.SysConfigNow.RootPath)
 
-	fmt.Println("检查 RootPath 设置:", conf.ConfigNow.RootPath)
+	fmt.Println("检查 RootPath 设置:", conf.SysConfigNow.RootPath)
 
-	if conf.ConfigNow.RootPath == "" || conf.ConfigNow.RootPath == "/" {
-		return true
+	pathSplit := strings.Split(conf.SysConfigNow.RootPath, "/")
+	fileIdNow := "root"
+	fmt.Print("验证文件夹路径: ")
+	for _, pathName := range pathSplit {
+		if pathName == "" {
+			fileIdNow = "root"
+			continue
+		}
+		folderList := api.FolderList(fileIdNow)
+
+		pathFlag := false
+
+		for _, fileMsg := range folderList.Items {
+			if fileMsg.Type == "folder" && fileMsg.Name == pathName {
+				fmt.Print(" -> ", fileMsg.Name)
+				fileIdNow = fileMsg.FileID
+				pathFlag = true
+				break
+			}
+		}
+		if !pathFlag {
+			fmt.Println("文件夹路径", conf.SysConfigNow.RootPath, "错误, 无法找到文件夹:", pathName)
+			return false
+		}
+	}
+	fmt.Println()
+	fmt.Println("文件夹路径验证成功, FileId:", fileIdNow)
+
+	driverRootPath = &Path{
+		Name:   "/",
+		FileId: fileIdNow,
+		IsDir:  true,
+	}
+
+	// 只有在 user config 的 rootPath 更新的情况下， 才去更新 pathMap.json， 否则沿用旧的
+	LoadPathMapFromLocal()
+	// 看看本地缓存文件里面的 / 和 /root 其 fileId 与最新的是否一致
+	if _, ok := pathMap["/"]; ok {
+		fmt.Println("旧 Root Path -> FileId:", pathMap["/"].FileId)
+		fmt.Println("旧 Root Path -> FileId:", driverRootPath.FileId)
+		// 不一致的情况需要刷新 pathMap
+		if pathMap["/"].FileId != driverRootPath.FileId {
+			fmt.Println("检测到 rootPath 设置已更新， 清除 path map 缓存")
+			pathMap["/"] = *driverRootPath
+			pathMap["/root"] = *driverRootPath
+			savePathMapToLocal()
+		} else {
+			fmt.Println("rootPath 设置未变更")
+		}
 	} else {
-		pathSplit := strings.Split(conf.ConfigNow.RootPath, "/")
-		fileIdNow := "root"
-		fmt.Print("验证文件夹路径: ")
-		for _, pathName := range pathSplit {
-			if pathName == "" {
-				fileIdNow = "root"
-				continue
-			}
-			folderList := api.FolderList(fileIdNow)
-
-			pathFlag := false
-
-			for _, fileMsg := range folderList.Items {
-				if fileMsg.Type == "folder" && fileMsg.Name == pathName {
-					fmt.Print(" -> ", fileMsg.Name)
-					fileIdNow = fileMsg.FileID
-					pathFlag = true
-					break
-				}
-			}
-			if !pathFlag {
-				fmt.Println("文件夹路径", conf.ConfigNow.RootPath, "错误, 无法找到文件夹:", pathName)
-				return false
-			}
-		}
-		fmt.Println()
-		fmt.Println("文件夹路径验证成功")
-
-		driverRootPath = &Path{
-			Name:   "/",
-			FileId: fileIdNow,
-			IsDir:  true,
-		}
+		fmt.Println("无法从已有 pathMap 缓存当中找到根目录 FileId 设置")
+		// 如果 pathMap 压根没有 / 的映射
 		pathMap["/"] = *driverRootPath
 		pathMap["/root"] = *driverRootPath
-		// TODO pathMap 不需要每次都全部重写
 		savePathMapToLocal()
-		return true
 	}
+	return true
 }
 
 // 路径是否正确
 func IsPathTrue(path string) bool {
-	// 载入本地配置文件
-	if !loadPathFromLocalFlag {
-		LoadPathMapFromLocal()
-		loadPathFromLocalFlag = true
-	}
 
 	// 查找能否从 pathMap 里面找到这个 path 对应的 fileId
 	fmt.Println("请求", path)
@@ -135,11 +142,6 @@ func IsPathTrue(path string) bool {
 // 是否为文件
 // 返回参数1代表是否是文件， 参数2代表路径是否正确
 func IsPathIsFile(path string) bool {
-	// 载入本地配置文件
-	if !loadPathFromLocalFlag {
-		LoadPathMapFromLocal()
-		loadPathFromLocalFlag = true
-	}
 	return !pathMap[path].IsDir
 }
 
@@ -147,11 +149,6 @@ func IsPathIsFile(path string) bool {
 // 先通过文件的 parent 路径, 获取其 parent 路径的 fileId
 // 然后通过 fileList 的方式, 获取该文件的 fileId
 func GetFileDetail(path string) (*FileDetailBean, bool) {
-	// 载入本地配置文件
-	if !loadPathFromLocalFlag {
-		LoadPathMapFromLocal()
-		loadPathFromLocalFlag = true
-	}
 	split := strings.Split(path, "/")
 	parentPath := path[0 : len(path)-len(split[len(split)-1])]
 	parentPath = FormatPathQuery(parentPath)
@@ -186,13 +183,6 @@ type FileDownMsgBean struct {
 }
 
 func GetFileDownloadUrl(path string) *FileDownMsgBean {
-
-	// 载入本地配置文件
-	if !loadPathFromLocalFlag {
-		LoadPathMapFromLocal()
-		loadPathFromLocalFlag = true
-	}
-
 	if _, ok := pathMap[path]; !ok {
 		return nil
 	}
@@ -214,13 +204,6 @@ func GetFileDownloadUrl(path string) *FileDownMsgBean {
 // 如果可以找到的话, 就返回 PathDetailBean, true, 如果不行的话返回 nil, false
 // 如果 api 请求失败的话, 会返回 [], true
 func GetPathDetail(path string) ([]PathDetailBean, bool) {
-
-	// 载入本地配置文件
-	if !loadPathFromLocalFlag {
-		LoadPathMapFromLocal()
-		loadPathFromLocalFlag = true
-	}
-
 	folderList := api.FolderList(pathMap[path].FileId)
 	if folderList == nil || folderList.Items == nil {
 		fmt.Println("路径:", path, "获取 folderList 失败")
@@ -337,47 +320,4 @@ func byteCountBinary(size int64) string {
 		exp++
 	}
 	return fmt.Sprintf("%.1f%cB", float64(size)/float64(div), "KMGTPE"[exp])
-}
-
-//================================== FileId 缓存 相关逻辑==================================
-
-const localPathMapConf = "./pathMap.json"
-
-var loadPathFromLocalFlag = false
-
-func LoadPathMapFromLocal() {
-	openFile := file.OpenFile(localPathMapConf)
-	if !openFile.Exits() {
-		fmt.Println("path map 缓存文件不存在")
-		return
-	} else {
-		pathMapString, err := storage.ReadFileAsString(localPathMapConf)
-		if err != nil {
-			fmt.Println("读取 path map 缓存文件失败", err)
-		} else {
-			err := json.Unmarshal([]byte(pathMapString), &pathMap)
-			if err != nil {
-				fmt.Println("读取 path map 缓存文件失败, 序列化失败", err)
-			}
-		}
-	}
-
-	if driverRootPath != nil {
-		pathMap["/"] = *driverRootPath
-		pathMap["/root"] = *driverRootPath
-	}
-}
-
-func savePathMapToLocal() {
-	jsonRes, err := json.MarshalIndent(pathMap, "", "  ")
-	if err != nil {
-		fmt.Println("输出 path map 缓存到本地时候发生格式化错误", err)
-	} else {
-		err := storage.WriteStringToFile(localPathMapConf, string(jsonRes), false)
-		if err != nil {
-			fmt.Println("输出 path map 缓存到本地时候发生 io 错误", err)
-		} else {
-			fmt.Println("刷新 path map 缓存到本地")
-		}
-	}
 }
