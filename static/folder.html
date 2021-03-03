@@ -7,8 +7,8 @@
     <meta name="force-rendering" content="webkit"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
 
-    <!-- MDUI CSS -->
     <link rel="stylesheet" href="./css/mdui.css"/>
+
     <title>Andex云盘</title>
 </head>
 <body>
@@ -44,12 +44,13 @@
 
 
     <div class="mdui-table-fluid mdui-m-t-2">
-        <table class="mdui-table mdui-table-hoverable">
+        <table class="mdui-table mdui-table-hoverable" id="test">
             <thead>
             <tr>
                 <th>名称</th>
-                <th>创建日期</th>
-                <th>更新日期</th>
+                <th class="table-col-create-time">创建</th>
+                <th class="table-col-update-time">更新</th>
+                <th>大小</th>
             </tr>
             </thead>
             <tbody>
@@ -72,19 +73,21 @@
                                 {{$detail.Name}}
                             </span>
                         </td>
-                        <td style="width: 20%;">{{$detail.CreateTime}}</td>
-                        <td style="width: 20%;">{{$detail.UpdateTime}}</td>
+                        <td class="table-col-create-time" style="width: 15%;">{{$detail.CreateTime}}</td>
+                        <td class="table-col-update-time" style="width: 15%;">{{$detail.UpdateTime}}</td>
+                        <td style="width: 10%;">{{$detail.Size}}</td>
                     </tr>
                 {{else}}
-                    <tr data-href="{{$detail.Path}}" data-type="{{$detail.Type}}" onclick="">
+                    <tr data-href="{{$detail.Path}}" data-type="{{$detail.Type}}" onclick="gotoDir('{{$detail.Path}}')">
                         <td>
                             <i class="mdui-icon material-icons mdui-m-r-1">insert_drive_file</i>
                             <span>
                                 {{$detail.Name}}
                             </span>
                         </td>
-                        <td>{{$detail.CreateTime}}</td>
-                        <td>{{$detail.UpdateTime}}</td>
+                        <td class="table-col-create-time" style="width: 15%;">{{$detail.CreateTime}}</td>
+                        <td class="table-col-update-time" style="width: 15%;">{{$detail.UpdateTime}}</td>
+                        <td style="width: 10%;">{{$detail.Size}}</td>
                     </tr>
 
                 {{end}}
@@ -97,20 +100,21 @@
     </div>
 </div>
 
-<!-- MDUI JavaScript -->
-<script type="javascript" src="./js/mdui.js"></script>
+<script type="text/javascript" src="./js/mdui.js"></script>
+<script type="text/javascript" src="./js/andex.js"></script>
 <script>
+    function hideTime(){
+        let doms = document.getElementsByClassName("table-col-create-time");
+        // doms.forEach(element => {
+        //     dom.stytle.style.visibility="hidden"
+        // });
+        let table = document.getElementById("test")
+        
+    }
 
-    function gotoDir(path) {
-        if (path === null || path === undefined){
-            return
-        }
-        console.log("goto path: " + path)
-        if (path === "/"){
-            window.location.href= window.location.origin
-        } else {
-            window.location.search =  "?p=" + path
-        }
+    let table = document.getElementById("test")
+    function showTime(){
+
     }
 
 </script>

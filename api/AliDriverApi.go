@@ -3,9 +3,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/Ericwyn/Andex/ajax"
 	"github.com/Ericwyn/Andex/conf"
-	"time"
 )
 
 const baseUrl = "https://api.aliyundrive.com"
@@ -18,19 +19,29 @@ const aliUrl = baseUrl + "/" + apiVersion
 //=========================================
 
 type FileMsgBean struct {
-	DriveID       string    `json:"drive_id"`
-	DomainID      string    `json:"domain_id"`
-	FileID        string    `json:"file_id"`
-	Name          string    `json:"name"`
-	Type          string    `json:"type"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
-	FileExtension string    `json:"file_extension"`
-	Hidden        bool      `json:"hidden"`
-	Starred       bool      `json:"starred"`
-	Status        string    `json:"status"`
-	ParentFileID  string    `json:"parent_file_id"`
-	EncryptMode   string    `json:"encrypt_mode"`
+	DriveID         string    `json:"drive_id"`
+	DomainID        string    `json:"domain_id"`
+	FileID          string    `json:"file_id"`
+	Name            string    `json:"name"`
+	Type            string    `json:"type"`
+	ContentType     string    `json:"content_type"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	FileExtension   string    `json:"file_extension"`
+	Hidden          bool      `json:"hidden"`
+	Size            int64     `json:"size"`
+	Starred         bool      `json:"starred"`
+	Status          string    `json:"status"`
+	UploadID        string    `json:"upload_id"`
+	ParentFileID    string    `json:"parent_file_id"`
+	Crc64Hash       string    `json:"crc64_hash"`
+	ContentHash     string    `json:"content_hash"`
+	ContentHashName string    `json:"content_hash_name"`
+	DownloadURL     string    `json:"download_url"`
+	URL             string    `json:"url"`
+	Category        string    `json:"category"`
+	EncryptMode     string    `json:"encrypt_mode"`
+	PunishFlag      int       `json:"punish_flag"`
 }
 
 type FolderListBean struct {
@@ -237,8 +248,11 @@ func GetDownloadUrlByFileIdAndFileName(fileId string, fileName string) string {
 		},
 		Always: nil,
 	})
-
-	return result.URL
+	if result != nil {
+		return result.URL
+	} else {
+		return ""
+	}
 }
 
 //=========================================

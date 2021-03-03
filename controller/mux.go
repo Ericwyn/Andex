@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+
 	"github.com/Ericwyn/GoTools/file"
 	"github.com/gin-gonic/gin"
 )
@@ -9,6 +10,7 @@ import (
 // 设置 API 路由
 func initAPI(router *gin.Engine) {
 	router.GET("/", pages)
+	router.GET("/download", download)
 }
 
 // 返回全局路由, 包括静态资源

@@ -3,32 +3,37 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
+	"strings"
+
 	"github.com/Ericwyn/Andex/api"
 	"github.com/Ericwyn/Andex/storage"
 	"github.com/Ericwyn/GoTools/date"
 	"github.com/Ericwyn/GoTools/file"
-	"sort"
-	"strings"
 )
 
 // 获取这个路径下面的文件列表
 type PathDetailBean struct {
-	Name       string
-	ParentPath string
-	Type       string
-	CreateTime string
-	UpdateTime string
-	Path       string
+	Name        string
+	ParentPath  string
+	Type        string
+	CreateTime  string
+	UpdateTime  string
+	Path        string
+	DownloadUrl string
+	Size        string
 }
 
 // 获取这个路径下面的文件列表
 type FileDetailBean struct {
-	Name       string
-	ParentPath string
-	Type       string
-	CreateTime string
-	UpdateTime string
-	Path       string
+	Name        string
+	ParentPath  string
+	Type        string
+	DownloadUrl string
+	CreateTime  string
+	UpdateTime  string
+	Size        string
+	Path        string
 }
 
 type Path struct {
@@ -92,7 +97,10 @@ func IsPathIsFile(path string) bool {
 	return !pathMap[path].IsDir
 }
 
-func GetFileDetail(path string) *FileDetailBean {
+// 传入一个文件路径, 获取该文件的详情
+// 先通过文件的 parent 路径, 获取其 parent 路径的 fileId
+// 然后通过 fileList 的方式, 获取该文件的 fileId
+func GetFileDetail(path string) (*FileDetailBean, bool) {
 	// 载入本地配置文件
 	if !loadPathFromLocalFlag {
 		LoadPathMapFromLocal()
@@ -102,19 +110,55 @@ func GetFileDetail(path string) *FileDetailBean {
 	parentPath := path[0 : len(path)-len(split[len(split)-1])]
 	parentPath = FormatPathQuery(parentPath)
 
-	detail := GetPathDetail(parentPath)
-	for _, path := range detail {
-		// 文件名判断
-		if path.Name == split[len(split)-1] && path.Type == "file" {
-			return &FileDetailBean{
-				Name:       path.Name,
-				ParentPath: path.ParentPath,
-				Type:       "file",
-				CreateTime: path.CreateTime,
-				UpdateTime: path.UpdateTime,
-				Path:       path.Path,
-			}
+	dirDetails, haveDetail := GetPathDetail(parentPath)
 
+	if !haveDetail {
+		return nil, false
+	}
+
+	for _, fileDetail := range dirDetails {
+		// 文件名判断
+		if fileDetail.Name == split[len(split)-1] && fileDetail.Type == "file" {
+			return &FileDetailBean{
+				Name:       fileDetail.Name,
+				ParentPath: fileDetail.ParentPath,
+				Type:       "file",
+				CreateTime: fileDetail.CreateTime,
+				UpdateTime: fileDetail.UpdateTime,
+				Path:       fileDetail.Path,
+				Size:       fileDetail.Size,
+			}, true
+
+		}
+	}
+	return nil, false
+}
+
+type FileDownMsgBean struct {
+	Name string
+	Url  string
+}
+
+func GetFileDownloadUrl(path string) *FileDownMsgBean {
+
+	// 载入本地配置文件
+	if !loadPathFromLocalFlag {
+		LoadPathMapFromLocal()
+		loadPathFromLocalFlag = true
+	}
+
+	if _, ok := pathMap[path]; !ok {
+		return nil
+	}
+
+	fileDetail := pathMap[path]
+	if !fileDetail.IsDir {
+		url := api.GetDownloadUrlByFileIdAndFileName(fileDetail.FileId, fileDetail.Name)
+		if url != "" {
+			return &FileDownMsgBean{
+				Name: fileDetail.Name,
+				Url:  url,
+			}
 		}
 	}
 	return nil
@@ -123,7 +167,7 @@ func GetFileDetail(path string) *FileDetailBean {
 // 通过一个 path, 如果 /share/wx, 来获取这个 path 下面对应的 PathDetailBean
 // 如果可以找到的话, 就返回 PathDetailBean, true, 如果不行的话返回 nil, false
 // 如果 api 请求失败的话, 会返回 [], true
-func GetPathDetail(path string) []PathDetailBean {
+func GetPathDetail(path string) ([]PathDetailBean, bool) {
 
 	// 载入本地配置文件
 	if !loadPathFromLocalFlag {
@@ -134,8 +178,9 @@ func GetPathDetail(path string) []PathDetailBean {
 	folderList := api.FolderList(pathMap[path].FileId)
 	if folderList == nil || folderList.Items == nil {
 		fmt.Println("路径:", path, "获取 folderList 失败")
-		return make([]PathDetailBean, 0)
+		return nil, false
 	}
+
 	result := make([]PathDetailBean, 0)
 
 	pathMapUpdateFlag := false
@@ -148,12 +193,14 @@ func GetPathDetail(path string) []PathDetailBean {
 
 		// 构造 PathDetailBean
 		result = append(result, PathDetailBean{
-			Name:       fileMsgBean.Name,
-			Type:       fileMsgBean.Type,
-			Path:       filePath,
-			CreateTime: date.Format(fileMsgBean.CreatedAt, "yyyy-MM-dd HH:mm"),
-			UpdateTime: date.Format(fileMsgBean.UpdatedAt, "yyyy-MM-dd HH:mm"),
-			ParentPath: "",
+			Name:        fileMsgBean.Name,
+			Type:        fileMsgBean.Type,
+			Path:        filePath,
+			CreateTime:  date.Format(fileMsgBean.CreatedAt, "yyyy-MM-dd HH:mm"),
+			UpdateTime:  date.Format(fileMsgBean.UpdatedAt, "yyyy-MM-dd HH:mm"),
+			DownloadUrl: fileMsgBean.DownloadURL,
+			Size:        byteCountBinary(fileMsgBean.Size),
+			ParentPath:  "",
 		})
 
 		// 更新缓存, 无论是文件还是文件夹都会缓存下来
@@ -194,7 +241,7 @@ func GetPathDetail(path string) []PathDetailBean {
 	})
 
 	// 构造 PathDetailBean 返回
-	return result
+	return result, true
 }
 
 // 构造路径面包屑
@@ -227,6 +274,23 @@ func GetNavPathList(path string) []NavPath {
 	}
 
 	return navPathList
+}
+
+// 文件大小可读形式输出
+func byteCountBinary(size int64) string {
+	if size == 0 {
+		return ""
+	}
+	const unit int64 = 1024
+	if size < unit {
+		return fmt.Sprintf("%dB", size)
+	}
+	div, exp := unit, 0
+	for n := size / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f%cB", float64(size)/float64(div), "KMGTPE"[exp])
 }
 
 //================================== FileId 缓存 相关逻辑==================================
