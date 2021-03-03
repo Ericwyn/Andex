@@ -6,6 +6,7 @@ import (
 	"github.com/Ericwyn/Andex/storage"
 	"github.com/Ericwyn/GoTools/file"
 	"strings"
+	"time"
 )
 
 const UserConfigFilePath = "config.json"
@@ -17,10 +18,11 @@ type ConfigKey string
 
 // Andex 系统配置， 存储在 .conf 文件夹内
 type SystemSysConf struct {
-	RefreshToken  string `json:"refresh_token"`
-	Authorization string `json:"authorization"`
-	DriveID       string `json:"drive_id"`
-	RootPath      string `json:"root_path"`
+	RefreshToken     string    `json:"refresh_token"`
+	Authorization    string    `json:"authorization"`
+	DriveID          string    `json:"drive_id"`
+	RootPath         string    `json:"root_path"`
+	LastGetTokenTime time.Time `json:"last_get_token_time"`
 }
 
 // Andex 用户配置, 存储在 ./
@@ -97,6 +99,8 @@ func SaveTokenConf(authorization string, refreshToken string, driveId string) {
 	SysConfigNow.Authorization = authorization
 	SysConfigNow.RefreshToken = refreshToken
 	SysConfigNow.DriveID = driveId
+	SysConfigNow.LastGetTokenTime = time.Now() // 保存上一次 token 获取的时间
+
 	SaveSysConf()
 	UpdateRefreshTokenInUserConf(refreshToken)
 }
