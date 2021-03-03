@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sync"
 )
+
+var writeMutex sync.Mutex
 
 func ReadFileAsString(path string) (string, error) {
 	logFile := ""
@@ -35,6 +38,8 @@ func ReadFileAsString(path string) (string, error) {
 }
 
 func WriteStringToFile(path string, stringData string, append bool) error {
+	writeMutex.Lock()
+
 	var fl *os.File
 	var err error
 	if append {
@@ -45,11 +50,6 @@ func WriteStringToFile(path string, stringData string, append bool) error {
 	if err != nil {
 		return err
 	}
-	//err = fl.Chdir()
-	//if err != nil {
-	//	//fmt.Println(err.Error())
-	//	return err
-	//}
 
 	defer fl.Close()
 
@@ -62,5 +62,7 @@ func WriteStringToFile(path string, stringData string, append bool) error {
 		//fmt.Println("write byte num error")
 		return fmt.Errorf("write byte num error")
 	}
+	writeMutex.Unlock()
+
 	return nil
 }
