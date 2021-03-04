@@ -14,6 +14,18 @@
         a:visited{text-decoration: none;}
         a:hover {text-decoration: none;}
         a:active{text-decoration:none;}
+
+        p{
+            word-break:break-all;
+            /*word-break:normal;*/
+            width:auto;
+            display:block;
+            /*white-space:pre-wrap;*/
+            word-wrap : break-word ;
+            overflow: hidden ;
+            white-space:normal
+            /*word-wrap:break-word*/
+        }
     </style>
     <title>Andex云盘</title>
 </head>
@@ -35,28 +47,30 @@
     <div class="mdui-col-xs-12 mdui-col-sm-6 mdui-col-md-6 mdui-col-lg-6">
 
         <div class="mdui-card mdui-m-t-4">
-            <div class="mdui-m-y-4 mdui-m-x-1">
+            <div class="mdui-m-y-4 mdui-m-x-3">
                 <div class="mdui-m-y-3" style="font-size: 16px" >
                     <span style="font-weight: bold;margin-right: 10px">文件名称:</span>
-                    <span>{{.fileDetail.Name}} </span>
+                    <p class="">{{.fileDetail.Name}} </p>
                 </div>
                 <div class="mdui-m-y-3" style="font-size: 16px" >
                     <span style="font-weight: bold;margin-right: 5px">文件位置:</span>
-                    <div class="mdui-chip mdui-color-blue mdui-text-color-white"  onclick="gotoDir('{{.navPath.Path}}')">
-                        <span class="mdui-chip-title">{{.navPath.Name}}</span>
+                    <div class="mdui-m-t-2">
+                        <div class="mdui-chip mdui-color-blue mdui-text-color-white"  onclick="gotoDir('{{.navPath.Path}}')">
+                            <span class="mdui-chip-title">{{.navPath.Name}}</span>
+                        </div>
                     </div>
                 </div>
                 <div class="mdui-m-y-3" style="font-size: 16px" >
                     <span style="font-weight: bold;margin-right: 10px">文件大小:</span>
-                    <span>{{.fileDetail.Size}} </span>
+                    <p>{{.fileDetail.Size}} </p>
                 </div>
                 <div class="mdui-m-y-3" style="font-size: 16px" >
                     <span style="font-weight: bold;margin-right: 10px">创建日期:</span>
-                    <span>{{.fileDetail.CreateTime}} </span>
+                    <p>{{.fileDetail.CreateTime}} </p>
                 </div>
                 <div class="mdui-m-y-3" style="font-size: 16px" >
                     <span style="font-weight: bold;margin-right: 10px">更新日期:</span>
-                    <span>{{.fileDetail.UpdateTime}} </span>
+                    <p>{{.fileDetail.UpdateTime}} </p>
                 </div>
             </div>
         </div>
