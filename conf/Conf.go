@@ -143,14 +143,14 @@ func CreateUserConfFile() {
 		RootPath:     "/",
 	}, "", "  ")
 	if err != nil {
-		fmt.Println("序列化 sys 配置发生错误", err)
+		fmt.Println("序列化 user 配置发生错误", err)
 	} else {
 
 		err := storage.WriteStringToFile(UserConfigFilePath, string(bytes), false)
 		if err != nil {
-			fmt.Println("sys 配置文件更新失败", err)
+			fmt.Println("user 配置文件更新失败", err)
 		} else {
-			fmt.Println("sys 配置文件已更新")
+			fmt.Println("user 配置文件已更新")
 		}
 	}
 
