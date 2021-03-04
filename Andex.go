@@ -101,14 +101,22 @@ func loadConfig() {
 	fmt.Println()
 }
 
+var cornFirstFlag = true
+
 func runCorn() {
 	s := gocron.NewScheduler(time.UTC)
 
 	// 每 28 分钟刷新一次配置
 	s.Every(28).Minutes().Do(func() {
-		fmt.Println("corn 刷新 token 配置")
-		api.RefreshToken()
+		if cornFirstFlag {
+			cornFirstFlag = false
+		} else {
+			fmt.Println("corn 刷新 token 配置")
+			api.RefreshToken()
+		}
 	})
+
+	s.StartAsync()
 }
 
 func startServer() {
