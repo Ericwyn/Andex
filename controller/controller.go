@@ -17,9 +17,11 @@ func pages(ctx *gin.Context) {
 	// 格式化 query 参数
 	path = service.FormatPathQuery(path)
 
-	// 判断是否是文件
+	// 判断访问路径是否正确
 	if !service.IsPathTrue(path) {
-		ctx.String(200, "没有找到该路径")
+		ctx.HTML(200, "error.html", gin.H{
+			"errorNote": "你访问的页面不存在, 或者路径未缓存",
+		})
 		return
 	}
 
@@ -47,7 +49,9 @@ func pages(ctx *gin.Context) {
 			})
 			return
 		} else {
-			ctx.String(200, "获取文件详情失败")
+			ctx.HTML(200, "error.html", gin.H{
+				"errorNote": "获取文件详情失败了",
+			})
 			return
 		}
 	} else {
@@ -63,7 +67,9 @@ func pages(ctx *gin.Context) {
 			})
 			return
 		} else {
-			ctx.String(200, "获取文件夹详情失败")
+			ctx.HTML(200, "error.html", gin.H{
+				"errorNote": "获取文件夹详情失败",
+			})
 			return
 		}
 	}
@@ -82,7 +88,9 @@ func download(ctx *gin.Context) {
 
 	// 判断是否是文件
 	if !service.IsPathTrue(path) {
-		ctx.String(200, "没有找到该路径")
+		ctx.HTML(200, "error.html", gin.H{
+			"errorNote": "你访问的文件路径不存在, 或路径未缓存",
+		})
 		return
 	}
 
@@ -94,12 +102,15 @@ func download(ctx *gin.Context) {
 			ctx.Redirect(302, fileDownMsgBean.Url)
 			return
 		} else {
-			ctx.String(200, "文件下载地址获取失败")
+			ctx.HTML(200, "error.html", gin.H{
+				"errorNote": "文件下载地址获取失败",
+			})
 			return
 		}
-
 	} else {
-		ctx.String(200, "非文件路径")
+		ctx.HTML(200, "error.html", gin.H{
+			"errorNote": "该路径不是可下载文件",
+		})
 		return
 	}
 }
