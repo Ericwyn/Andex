@@ -53,87 +53,48 @@
         </div>
     </div>
 
-
     <div class="mdui-table-fluid mdui-m-y-2 ">
-
-        {{if .isMobil}}
-            <table class="mdui-table mdui-table-hoverable">
-                {{range $i, $detail := .pathDetail}}
-                    <ul class="mdui-list mdui-list-dense"  onclick="gotoDir('{{$detail.Path}}')">
-                        <li class="mdui-list-item mdui-ripple" >
-                            <div class="mdui-list-item-avatar mdui-color-white mdui-text-color-blue">
-                                {{if eq $detail.Type "folder"}}
-                                    <i class="mdui-icon material-icons mdui-m-r-1" style="font-size: 35px">folder</i>
-                                {{else}}
-                                    <i class="mdui-icon material-icons mdui-m-r-1" style="font-size: 35px">
-                                        insert_drive_file
-                                    </i>
-                                {{end}}
-                            </div>
-                            <div class="mdui-list-item-content">
-                                <div class="mdui-list-item-title" style="font-size: 18px;">
-                                    <span class="text-auto-wrap">
-                                        {{$detail.Name}}
-                                    </span>
-                                </div>
-                                <div class="mdui-list-item-text mdui-list-item-two-line" style="height: 16px;">
-                                    {{if eq $detail.Type "folder"}}
-                                        <span class="mdui-text-color-theme-text">{{$detail.UpdateTime}}</span>
-                                    {{else}}
-                                        <span class="mdui-text-color-theme-text">{{$detail.UpdateTime}} | {{$detail.Size}}</span>
-                                    {{end}}
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
+        <table class="mdui-table mdui-table-hoverable">
+            <thead>
+            <tr>
+                <th>名称</th>
+                {{if not .isMobil}}
+                <th class="table-col-create-time">创建</th>
+                <th class="table-col-update-time">更新</th>
                 {{end}}
-            </table>
+                <th>大小</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{range $i, $detail := .pathDetail}}
 
-        {{else}}
-            <table class="mdui-table mdui-table-hoverable">
-                <thead>
-                <tr>
-                    <th>名称</th>
-                    <th class="table-col-create-time">创建</th>
-                    <th class="table-col-update-time">更新</th>
-                    <th>大小</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{range $i, $detail := .pathDetail}}
-                    {{if eq $detail.Type "folder"}}
-                        <tr data-href="{{$detail.Path}}" data-type="{{$detail.Type}}" onclick="gotoDir('{{$detail.Path}}')">
-                            <td>
+                <tr data-href="{{$detail.Path}}" data-type="{{$detail.Type}}" onclick="gotoDir('{{$detail.Path}}')">
+                    <td>
+                        <p style="word-break:break-all;
+                            width:auto;
+                            display:block;
+                            word-wrap : break-word ;
+                            overflow: hidden ;
+                            white-space:normal">
+                            {{if eq $detail.Type "folder"}}
                                 <i class="mdui-icon material-icons mdui-m-r-1">folder</i>
-                                <span>
-                                    {{$detail.Name}}
-                                </span>
-                            </td>
-                            <td class="table-col-create-time" style="width: 15%;">{{$detail.CreateTime}}</td>
-                            <td class="table-col-update-time" style="width: 15%;">{{$detail.UpdateTime}}</td>
-                            <td style="width: 5%;">{{$detail.Size}}</td>
-                        </tr>
-                    {{else}}
-                        <tr data-href="{{$detail.Path}}" data-type="{{$detail.Type}}" onclick="gotoDir('{{$detail.Path}}')">
-                            <td>
+                            {{else}}
                                 <i class="mdui-icon material-icons mdui-m-r-1">insert_drive_file</i>
-                                <span>
-                                    {{$detail.Name}}
-                                </span>
-                            </td>
-                            <td class="table-col-create-time" style="width: 15%;">{{$detail.CreateTime}}</td>
-                            <td class="table-col-update-time" style="width: 15%;">{{$detail.UpdateTime}}</td>
-                            <td style="width: 5%;">{{$detail.Size}}</td>
-                        </tr>
+                            {{end}}
+                                {{$detail.Name}}
+                        </p>
+                    </td>
+                    {{if not $.isMobil}}
+                    <td class="table-col-create-time" style="width: 15%;">{{$detail.CreateTime}}</td>
+                    <td class="table-col-update-time" style="width: 15%;">{{$detail.UpdateTime}}</td>
                     {{end}}
-                {{end}}
+                    <td style="width: 5%;">{{$detail.Size}}</td>
+                </tr>
 
-                <tr></tr>
+            {{end}}
 
-                </tbody>
-            </table>
-        {{end}}
-
+            </tbody>
+        </table>
 
     </div>
 </div>
@@ -141,20 +102,6 @@
 <script type="text/javascript" src="./js/mdui.js"></script>
 <script type="text/javascript" src="./js/andex.js"></script>
 <script>
-    function hideTime(){
-        let doms = document.getElementsByClassName("table-col-create-time");
-        // doms.forEach(element => {
-        //     dom.stytle.style.visibility="hidden"
-        // });
-        let table = document.getElementById("test")
-        
-    }
-
-    let table = document.getElementById("test")
-    function showTime(){
-
-    }
-
 </script>
 </body>
 </html>
