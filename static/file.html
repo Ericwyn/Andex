@@ -40,7 +40,7 @@
     </div>
 </div>
 
-<div class="mdui-container" style="min-height: calc(100vh - 160px);">
+<div class="mdui-container" style="min-height: calc(100vh - 200px);">
 
     <div class="mdui-col-xs-0 mdui-col-sm-3 mdui-col-md-3 mdui-col-lg-3"></div>
 
@@ -76,16 +76,15 @@
         </div>
 
 
-        <div class="mdui-m-t-3 mdui-center">
-
-            <!--
-            <a target="_blank" href="{{.DownHref}}" >
-                <button class="mdui-btn mdui-color-blue mdui-text-color-white mdui-center" >文件下载{{.DownHref}}</button>
-            </a>
-            -->
-
-            <button class="mdui-btn mdui-color-blue mdui-text-color-white mdui-center" onclick="downFile()">文件下载</button>
-
+        <div class="mdui-m-t-3 mdui-row">
+            <div class="mdui-col-xs-6">
+                <button class="mdui-btn mdui-color-blue mdui-text-color-white mdui-center mdui-float-right" onclick="downFile()">文件下载</button>
+            </div>
+            <div class="mdui-col-xs-6">
+                <button id="copyBtn"
+                    data-clipboard-text="null"
+                    class="mdui-btn mdui-color-blue mdui-text-color-white mdui-center mdui-float-left">复制直链</button>
+            </div>
         </div>
 
     </div>
@@ -105,4 +104,37 @@
 </body>
 <script type="text/javascript" src="./js/mdui.js"></script>
 <script type="text/javascript" src="./js/andex.js"></script>
+<script type="text/javascript" src="./js/clipboard.min.js"></script>
+<script>
+
+    let filePath = window.location.search;
+    filePath = filePath.replace("/?p=", "")
+    filePath = filePath.replace("?p=", "")
+
+    let directUrl = (location.href.replace(location.search, "") + "download?p=" + filePath)
+    directUrl = decodeURIComponent(directUrl)
+    document.getElementById("copyBtn").setAttribute("data-clipboard-text", directUrl)
+
+    let clipboard = new ClipboardJS('#copyBtn');
+
+    clipboard.on('success', function(e) {
+        if (e.text != "null") {
+            mdui.snackbar({
+                message: '复制成功'
+            });
+        } else {
+            mdui.snackbar({
+                message: '复制失败'
+            });
+        }
+        e.clearSelection();
+    });
+
+    clipboard.on('error', function(e) {
+        mdui.snackbar({
+            message: '复制失败'
+        });
+    });
+
+</script>
 </html>

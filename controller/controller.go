@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/Ericwyn/Andex/service"
 	"github.com/gin-gonic/gin"
-	"strings"
 	"time"
 )
 
@@ -68,7 +67,6 @@ func pages(ctx *gin.Context) {
 				"pathDetail":     pathDetail,
 				"navPathList":    navPathList,
 				"navPathLength":  len(navPathList),
-				"isMobil":        isFromMobile(ctx.GetHeader("User-Agent")),
 				"apiRequestTime": fmt.Sprint(1.0*(time.Now().UnixNano()-startTime.UnixNano())/1000000, "ms"),
 			})
 			return
@@ -119,22 +117,4 @@ func download(ctx *gin.Context) {
 		})
 		return
 	}
-}
-
-func isFromMobile(userAgent string) bool {
-	if len(userAgent) == 0 {
-		return false
-	}
-
-	isMobile := false
-	mobileKeywords := []string{"Mobile", "Android", "Silk/", "Kindle",
-		"BlackBerry", "Opera Mini", "Opera Mobi"}
-
-	for i := 0; i < len(mobileKeywords); i++ {
-		if strings.Contains(userAgent, mobileKeywords[i]) {
-			isMobile = true
-			break
-		}
-	}
-	return isMobile
 }

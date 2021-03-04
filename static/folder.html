@@ -37,7 +37,7 @@
     </div>
 </div>
 
-<div class="mdui-container" style="min-height: calc(100vh - 160px);">
+<div class="mdui-container" style="min-height: calc(100vh - 200px);">
 
     <div class="mdui-card mdui-m-t-4">
         <div class="mdui-card-actions mdui-card-actions-stacked mdui-m-t-1 mdui-m-b-1">
@@ -62,10 +62,8 @@
             <thead>
             <tr>
                 <th>名称</th>
-                {{if not .isMobil}}
-                <th class="table-col-create-time">创建</th>
-                <th class="table-col-update-time">更新</th>
-                {{end}}
+                <th class="mdui-hidden-sm-down">创建</th>
+                <th class="mdui-hidden-sm-down">更新</th>
                 <th>大小</th>
             </tr>
             </thead>
@@ -88,10 +86,8 @@
                                 {{$detail.Name}}
                         </p>
                     </td>
-                    {{if not $.isMobil}}
-                    <td class="table-col-create-time" style="width: 15%;">{{$detail.CreateTime}}</td>
-                    <td class="table-col-update-time" style="width: 15%;">{{$detail.UpdateTime}}</td>
-                    {{end}}
+                    <td class="mdui-hidden-sm-down" style="width: 15%;">{{$detail.CreateTime}}</td>
+                    <td class="mdui-hidden-sm-down" style="width: 15%;">{{$detail.UpdateTime}}</td>
                     <td style="width: 5%;">{{$detail.Size}}</td>
                 </tr>
 
@@ -103,7 +99,7 @@
     </div>
 </div>
 
-<div class="doc-footer-nav mdui-color-white mdui-p-y-2" style="height: 40px">
+<div class="doc-footer-nav mdui-color-white mdui-p-t-2 mdui-p-b-1" style="height: 40px">
     <div class="mdui-center mdui-text-center ">
         <p class="mdui-center" style="font-size: 14px;">
             Power by <a href="https://github.com/Ericwyn/Andex">Andex</a>
