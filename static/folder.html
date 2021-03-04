@@ -9,6 +9,10 @@
 
     <link rel="stylesheet" href="./css/mdui.css"/>
     <style>
+        html, body{
+            height: 100%;
+
+        }
         .text-auto-wrap {
             word-break:normal;
             width:auto;
@@ -28,12 +32,12 @@
 {{/*        <a href="javascript:;" class="mdui-btn mdui-btn-icon">*/}}
 {{/*        </a>*/}}
         <a href="javascript:;" class="mdui-typo-headline" onclick="gotoDir('/')">Andex云盘</a>
-        <a href="javascript:;" class="mdui-typo-title">欢迎光临!</a>
+        <a href="javascript:;" class="mdui-typo-title"></a>
         <div class="mdui-toolbar-spacer"></div>
     </div>
 </div>
 
-<div class="mdui-container">
+<div class="mdui-container" style="min-height: calc(100vh - 160px);">
 
     <div class="mdui-card mdui-m-t-4">
         <div class="mdui-card-actions mdui-card-actions-stacked mdui-m-t-1 mdui-m-b-1">
@@ -99,9 +103,16 @@
     </div>
 </div>
 
+<div class="doc-footer-nav mdui-color-white mdui-p-y-2" style="height: 40px">
+    <div class="mdui-center mdui-text-center ">
+        <p class="mdui-center" style="font-size: 14px;">
+            Power by <a href="https://github.com/Ericwyn/Andex">Andex</a>
+            <span class="mdui-m-x-2">|</span>数据请求: {{.apiRequestTime}}
+        </p>
+    </div>
+</div>
+
+</body>
 <script type="text/javascript" src="./js/mdui.js"></script>
 <script type="text/javascript" src="./js/andex.js"></script>
-<script>
-</script>
-</body>
 </html>

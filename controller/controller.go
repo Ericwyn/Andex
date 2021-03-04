@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/Ericwyn/Andex/service"
 	"github.com/gin-gonic/gin"
 	"strings"
+	"time"
 )
 
 // 文件/文件夹页面获取接口
@@ -28,6 +30,8 @@ func pages(ctx *gin.Context) {
 	// 获取面包屑参数
 	navPathList := service.GetNavPathList(path)
 
+	startTime := time.Now()
+
 	if service.IsPathIsFile(path) {
 		fileDetail, _ := service.GetFileDetail(path)
 
@@ -44,8 +48,9 @@ func pages(ctx *gin.Context) {
 		}
 		if fileDetail != nil {
 			ctx.HTML(200, "file.html", gin.H{
-				"fileDetail": fileDetail,
-				"navPath":    navPath, // 父路径
+				"fileDetail":     fileDetail,
+				"navPath":        navPath, // 父路径
+				"apiRequestTime": fmt.Sprint(1.0*(time.Now().UnixNano()-startTime.UnixNano())/1000000, "ms"),
 			})
 			return
 		} else {
@@ -60,10 +65,11 @@ func pages(ctx *gin.Context) {
 		if hasDetail {
 
 			ctx.HTML(200, "folder.html", gin.H{
-				"pathDetail":    pathDetail,
-				"navPathList":   navPathList,
-				"navPathLength": len(navPathList),
-				"isMobil":       isFromMobile(ctx.GetHeader("User-Agent")),
+				"pathDetail":     pathDetail,
+				"navPathList":    navPathList,
+				"navPathLength":  len(navPathList),
+				"isMobil":        isFromMobile(ctx.GetHeader("User-Agent")),
+				"apiRequestTime": fmt.Sprint(1.0*(time.Now().UnixNano()-startTime.UnixNano())/1000000, "ms"),
 			})
 			return
 		} else {
