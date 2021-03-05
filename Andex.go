@@ -97,6 +97,9 @@ func loadConfig() {
 		os.Exit(0)
 	}
 
+	// 载入 README 文件
+	conf.LoadReadmeFile()
+
 	fmt.Println("===================== 启动配置 End =====================")
 	fmt.Println()
 }

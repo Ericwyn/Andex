@@ -40,6 +40,18 @@ type Path struct {
 	IsDir  bool   // 类型，
 }
 
+type FileDownMsgBean struct {
+	Name string
+	Url  string
+}
+
+// 构造路径面包屑
+type NavPath struct {
+	Name string
+	Path string
+	Last bool
+}
+
 // 用来存储 path 与 fileId 的对应, 会同步到 pathLog.json 里面
 // 默认是 root 文件夹
 var driverRootPath *Path
@@ -177,11 +189,6 @@ func GetFileDetail(path string) (*FileDetailBean, bool) {
 	return nil, false
 }
 
-type FileDownMsgBean struct {
-	Name string
-	Url  string
-}
-
 func GetFileDownloadUrl(path string) *FileDownMsgBean {
 	if _, ok := pathMap[path]; !ok {
 		return nil
@@ -273,13 +280,6 @@ func GetPathDetail(path string) ([]PathDetailBean, bool) {
 	return result, true
 }
 
-// 构造路径面包屑
-type NavPath struct {
-	Name string
-	Path string
-	Last bool
-}
-
 func GetNavPathList(path string) []NavPath {
 	split := strings.Split(path, "/")
 	navPathList := make([]NavPath, 0)
@@ -303,6 +303,14 @@ func GetNavPathList(path string) []NavPath {
 	}
 
 	return navPathList
+}
+
+func GetReadmeText() (string, bool) {
+	if conf.ReadmeText == "" {
+		return "", false
+	} else {
+		return conf.ReadmeText, true
+	}
 }
 
 // 文件大小可读形式输出

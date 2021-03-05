@@ -11,6 +11,8 @@ import (
 
 const UserConfigFilePath = "config.json"
 
+const UserReadmeFilePath = "README.md"
+
 const SysConfigDirPath = ".conf"
 const SysConfigFilePath = SysConfigDirPath + "/" + "config.json"
 
@@ -39,6 +41,8 @@ var SysConfigNow = SystemSysConf{
 	DriveID:       "NULL",
 	RootPath:      "/",
 }
+
+var ReadmeText = ""
 
 // 载入配置, 程序启动时候调用
 func LoadConfFromFile() {
@@ -91,7 +95,17 @@ func LoadConfFromFile() {
 			SaveSysConf()
 		}
 	}
+}
 
+func LoadReadmeFile() {
+	readmeFile := file.OpenFile(UserReadmeFilePath)
+	if readmeFile.Exits() {
+		var err error
+		ReadmeText, err = storage.ReadFileAsString(UserReadmeFilePath)
+		if err != nil {
+			fmt.Println("载入 README 文件失败", err)
+		}
+	}
 }
 
 // 保存 authorization/refreshToken/driveId 到 sysConf 和 userConf

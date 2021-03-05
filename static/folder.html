@@ -97,6 +97,13 @@
         </table>
 
     </div>
+
+    {{if .hasReadme}}
+    {{/*   只在有 readme 的时候才添加这些内容     */}}
+    <div class="mdui-card mdui-m-t-2 mdui-p-a-3" id="markdown">
+        <div class="mdui-spinner mdui-center mdui-m-a-2 mdui-spinner-colorful" id="spinner"></div>
+    </div>
+    {{end}}
 </div>
 
 <div class="doc-footer-nav mdui-color-white mdui-p-t-2 mdui-p-b-1" style="height: 40px">
@@ -108,7 +115,20 @@
     </div>
 </div>
 
+
 </body>
 <script type="text/javascript" src="./js/mdui.js"></script>
 <script type="text/javascript" src="./js/andex.js"></script>
+
+{{if .hasReadme}}
+{{/*   只在有 readme 的时候才添加这些内容     */}}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    let markdown={{.readme}};
+    let markdownHtml = marked(markdown);
+    document.getElementById("spinner").style.visibility = 'none'
+    document.getElementById("markdown").innerHTML = markdownHtml;
+</script>
+{{end}}
+
 </html>

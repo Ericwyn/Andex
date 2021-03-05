@@ -63,12 +63,21 @@ func pages(ctx *gin.Context) {
 		pathDetail, hasDetail := service.GetPathDetail(path)
 		if hasDetail {
 
+			var readmeText string = ""
+			var hasReadme bool = false
+			if path == "/" || path == "root" {
+				readmeText, hasReadme = service.GetReadmeText()
+			}
+
 			ctx.HTML(200, "folder.html", gin.H{
 				"pathDetail":     pathDetail,
 				"navPathList":    navPathList,
 				"navPathLength":  len(navPathList),
 				"apiRequestTime": fmt.Sprint(1.0*(time.Now().UnixNano()-startTime.UnixNano())/1000000, "ms"),
+				"readme":         readmeText,
+				"hasReadme":      hasReadme,
 			})
+
 			return
 		} else {
 			ctx.HTML(200, "error.html", gin.H{
