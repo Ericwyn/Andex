@@ -39,6 +39,7 @@ func ReadFileAsString(path string) (string, error) {
 
 func WriteStringToFile(path string, stringData string, append bool) error {
 	writeMutex.Lock()
+	defer writeMutex.Unlock()
 
 	var fl *os.File
 	var err error
@@ -55,14 +56,11 @@ func WriteStringToFile(path string, stringData string, append bool) error {
 
 	n, err := fl.WriteString(stringData)
 	if err != nil {
-		//fmt.Println(err.Error())
 		return err
 	}
 	if n < len(stringData) {
-		//fmt.Println("write byte num error")
 		return fmt.Errorf("write byte num error")
 	}
-	writeMutex.Unlock()
 
 	return nil
 }
