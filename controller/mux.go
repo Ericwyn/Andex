@@ -34,6 +34,7 @@ func loadStaticPath(router *gin.Engine) {
 		if child.IsDir() {
 			fmt.Println("load static router:", "/"+child.Name(), "->", staticDirPath+"/"+child.Name())
 			router.Static(child.Name(), staticDirPath+"/"+child.Name())
+			router.Static("static/"+child.Name(), staticDirPath+"/"+child.Name())
 		}
 	}
 }

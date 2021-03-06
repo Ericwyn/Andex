@@ -28,3 +28,11 @@
     - 文件/文件夹下载加密(密码设置)
 - 文件/文件夹下载次数统计
  - ip 防护/黑名单防护
+ 
+ ## 运行效果
+
+<img src="static/screenshot/screenshot1.png" style="width: 80%;margin-left: 10%" alt="图片1">
+
+<img src="static/screenshot/screenshot2.png" style="width: 80%;margin-left: 10%" alt="图片2">
+
+<img src="static/screenshot/screenshot3.png" style="width: 80%;margin-left: 10%" alt="图片3">
