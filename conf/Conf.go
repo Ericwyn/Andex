@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+const AndexServerVersion = "V1.0 Beta"
+
 const UserConfigFilePath = "config.json"
 
 const UserReadmeFilePath = "README.md"

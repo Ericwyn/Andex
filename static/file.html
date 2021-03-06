@@ -16,10 +16,6 @@
             crossorigin="anonymous"
     />
     <style>
-        a{text-decoration: none;}
-        a:visited{text-decoration: none;}
-        a:hover {text-decoration: none;}
-        a:active{text-decoration:none;}
 
         p{
             word-break:break-all;
@@ -102,8 +98,8 @@
 <div class="doc-footer-nav mdui-color-white mdui-p-y-2" style="height: 40px">
     <div class="mdui-center mdui-text-center ">
         <p class="mdui-center" style="font-size: 14px;">
-            Power by <a href="https://github.com/Ericwyn/Andex">Andex</a>
-            <span class="mdui-m-x-2">|</span>数据请求: {{.apiRequestTime}}
+            Power by <a href="https://github.com/Ericwyn/Andex" style="font-weight: bold;">Andex</a>
+            {{.andexVersion}}<span class="mdui-m-x-1">|</span>数据请求: {{.apiRequestTime}}
         </p>
     </div>
 </div>
