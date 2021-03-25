@@ -65,7 +65,7 @@
         </div>
     </div>
 
-    <div class="mdui-table-fluid mdui-m-y-2 ">
+    <div class="mdui-m-y-2 ">
         <table class="mdui-table mdui-table-hoverable">
             <thead>
             <tr>
@@ -73,13 +73,14 @@
                 <th class="mdui-hidden-sm-down">创建</th>
                 <th class="mdui-hidden-sm-down">更新</th>
                 <th>大小</th>
+                <th>操作</th>
             </tr>
             </thead>
             <tbody>
             {{range $i, $detail := .pathDetail}}
 
-                <tr data-href="{{$detail.Path}}" data-type="{{$detail.Type}}" onclick="gotoDir('{{$detail.Path}}')">
-                    <td>
+                <tr data-href="{{$detail.Path}}" data-type="{{$detail.Type}}">
+                    <td  onclick="gotoDir('{{$detail.Path}}')">
                         <p style="word-break:break-all;
                             width:auto;
                             display:block;
@@ -94,9 +95,25 @@
                                 {{$detail.Name}}
                         </p>
                     </td>
-                    <td class="mdui-hidden-sm-down" style="width: 15%;">{{$detail.CreateTime}}</td>
-                    <td class="mdui-hidden-sm-down" style="width: 15%;">{{$detail.UpdateTime}}</td>
-                    <td style="width: 5%;">{{$detail.Size}}</td>
+                    <td  onclick="gotoDir('{{$detail.Path}}')" class="mdui-hidden-sm-down" style="width: 15%;">{{$detail.CreateTime}}</td>
+                    <td  onclick="gotoDir('{{$detail.Path}}')" class="mdui-hidden-sm-down" style="width: 15%;">{{$detail.UpdateTime}}</td>
+                    <td  onclick="gotoDir('{{$detail.Path}}')" style="width: 5%;">{{$detail.Size}}</td>
+
+                    <td style="width: 5%">
+                        <i class="mdui-icon material-icons mdui-color-theme-accent" mdui-menu="{target: '#menu-{{$i}}',position: 'bottom',covered:true,subMenuDelay:50}">
+                            more_vert
+                        </i>
+
+                        <ul class="mdui-menu" id="menu-{{$i}}">
+                            <li class="mdui-menu-item">
+                                <a href="javascript:;" class="mdui-ripple">设置密码</a>
+                            </li>
+<!--                            <li class="mdui-menu-item">-->
+<!--                                <a href="javascript:;" class="mdui-ripple">设置密码</a>-->
+<!--                            </li>-->
+                        </ul>
+                    </td>
+
                 </tr>
 
             {{end}}
