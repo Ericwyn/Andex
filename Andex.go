@@ -1,10 +1,10 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"github.com/Ericwyn/Andex/api"
-	"github.com/Ericwyn/Andex/conf"
 	"github.com/Ericwyn/Andex/controller"
+	"github.com/Ericwyn/Andex/modal"
 	"github.com/Ericwyn/Andex/service"
 	"github.com/Ericwyn/GoTools/file"
 	"github.com/gin-gonic/gin"
@@ -12,18 +12,24 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
-func main() {
+var debugMode = flag.Bool("debug", false, "print sql log and gin debug log")
 
-	////// 获取文件夹文件列表
-	//list := api.FolderList("root")
-	//for _,item := range list.Items {
-	//	fmt.Println("name:", item.Name, ", type:", item.Type, ", id:", item.FileID)
-	//}
+func main() {
+	flag.Parse()
+
+	if *debugMode {
+		fmt.Println("DEBUG 模式已打开")
+	}
+
+	modal.InitDb(*debugMode)
 
 	// 载入配置
 	loadConfig()
+
 	// 运行配置
 	runCorn()
 
@@ -34,59 +40,49 @@ func main() {
 func loadConfig() {
 	fmt.Println("==================== 启动配置 Start ==================== ")
 
-	// 创建系统配置文件夹
-	sysConfDir := file.OpenFile(conf.SysConfigDirPath)
-	sysConfDir.Mkdirs()
-
-	userConfigFile := file.OpenFile(conf.UserConfigFilePath)
+	userConfigFile := file.OpenFile(service.UserConfigFilePath)
 	if !userConfigFile.Exits() {
 		fmt.Println("未检测到配置文件, 创建空白配置文件")
-		conf.CreateUserConfFile()
+		service.CreateUserConfFile()
 		os.Exit(0)
 	}
 
 	// 载入 System 和 User 配置
-	conf.LoadConfFromFile()
-	if conf.SysConfigNow.RefreshToken == "NULL" {
+	service.LoadConfFromFile()
+	if service.SysConfigNow.RefreshToken == "NULL" {
 		fmt.Println("RefreshToken 未配置")
 		os.Exit(0)
 	}
 
 	// api.RefreshToken() // 不需要每次启动都刷新 refreshToken 和 token
+	fmt.Println("服务运行端口:", service.UserConfNow.Port)
+	fmt.Println()
 
-	if conf.SysConfigNow.Authorization == "NULL" {
+	if service.SysConfigNow.Authorization == "NULL" {
 		// 如果 Authorization 为 NULL, 先尝试刷新一遍 token
-		api.RefreshToken()
-		if conf.SysConfigNow.Authorization == "NULL" {
+		service.RefreshToken()
+		if service.SysConfigNow.Authorization == "NULL" {
 			fmt.Println("token 无法获取 RefreshToken 错误或已过期")
 			os.Exit(0)
 		}
+	} else {
+		fmt.Println("从数据库中载入 Authorization")
 	}
-
-	// 载入配置后验证 token 是否已过期
-	//info := api.UserInfo()
-	//if info != nil {
-	//	fmt.Println("token 未过期")
-	//} else {
-	//	fmt.Println("token 已过期, 尝试重新获取")
-	//	// 刷新配置
-	//	api.RefreshToken()
-	//}
 
 	// 通过配置的时间来确认是否过期, 而不是执行一次请求
 	// 在距离上次刷新超过最大时间间隔
 	// refresh token 接口里面 expires 时间是 7200 这里取其 3/4 长度作为最大过期间隔
-	fmt.Println("本地配置载入完毕")
+	fmt.Println("运行配置载入完毕")
 	fmt.Println()
 
 	var maxTokenExpireTime int64 = 60 * 90
 	fmt.Println("token 过期时间设置:", maxTokenExpireTime)
-	if conf.SysConfigNow.LastGetTokenTime.Unix() == (time.Time{}).Unix() ||
-		time.Now().Unix()-conf.SysConfigNow.LastGetTokenTime.Unix() > maxTokenExpireTime {
-		api.RefreshToken()
+	if service.SysConfigNow.LastGetTokenTime.Unix() == (time.Time{}).Unix() ||
+		time.Now().Unix()-service.SysConfigNow.LastGetTokenTime.Unix() > maxTokenExpireTime {
+		service.RefreshToken()
 	} else {
 		fmt.Println("距离上次 token 获取时间已过去:",
-			time.Now().Unix()-conf.SysConfigNow.LastGetTokenTime.Unix())
+			time.Now().Unix()-service.SysConfigNow.LastGetTokenTime.Unix())
 	}
 
 	fmt.Println()
@@ -98,7 +94,7 @@ func loadConfig() {
 	}
 
 	// 载入 README 文件
-	conf.LoadReadmeFile()
+	service.LoadReadmeFile()
 
 	fmt.Println("===================== 启动配置 End =====================")
 	fmt.Println()
@@ -115,7 +111,7 @@ func runCorn() {
 			cornFirstFlag = false
 		} else {
 			fmt.Println("corn 刷新 token 配置")
-			api.RefreshToken()
+			service.RefreshToken()
 		}
 	})
 
@@ -123,10 +119,14 @@ func runCorn() {
 }
 
 func startServer() {
-	gin.SetMode(gin.DebugMode)
+	if *debugMode {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
 	s := &http.Server{
-		Addr:           ":8080",
+		Addr:           ":" + service.UserConfNow.Port,
 		Handler:        controller.NewMux(),
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,

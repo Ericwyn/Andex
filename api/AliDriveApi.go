@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Ericwyn/Andex/ajax"
-	"github.com/Ericwyn/Andex/conf"
 )
 
 const baseUrl = "https://api.aliyundrive.com"
@@ -51,7 +50,7 @@ type FolderListBean struct {
 
 // driveId 网盘id
 // parentDirId 父文件夹的 id, 根目录为 root
-func FolderList(parentDirId string) *FolderListBean {
+func FolderList(authorization string, driveId string, parentDirId string) *FolderListBean {
 	var result *FolderListBean = nil
 	ajax.Send(ajax.Request{
 		Url:    aliUrl + "/file/list",
@@ -59,7 +58,7 @@ func FolderList(parentDirId string) *FolderListBean {
 		Json: map[string]interface{}{
 			"limit":                   50,
 			"marker":                  nil,
-			"drive_id":                conf.SysConfigNow.DriveID,
+			"drive_id":                driveId,
 			"parent_file_id":          parentDirId,
 			"image_thumbnail_process": "image/resize,w_160/format,jpeg",
 			"image_url_process":       "image/resize,w_1920/format,jpeg",
@@ -69,7 +68,7 @@ func FolderList(parentDirId string) *FolderListBean {
 			"order_direction":         "DESC",
 			"content-type":            "application/json;charset=UTF-8",
 		},
-		Header: buildHeader(true),
+		Header: buildHeader(authorization, true),
 		Success: func(response *ajax.Response) {
 			//fmt.Println("code:", response.Code)
 			//fmt.Println("response:")
@@ -112,7 +111,7 @@ type UserInfoBean struct {
 	} `json:"user_data"`
 }
 
-func UserInfo() *UserInfoBean {
+func UserInfo(authorization string) *UserInfoBean {
 
 	var result *UserInfoBean = nil
 
@@ -120,7 +119,7 @@ func UserInfo() *UserInfoBean {
 		Url:    aliUrl + "/user/get",
 		Method: ajax.POST,
 		Json:   map[string]interface{}{},
-		Header: buildHeader(true),
+		Header: buildHeader(authorization, true),
 		Success: func(response *ajax.Response) {
 			//fmt.Println("code:", response.Code)
 			//fmt.Println("response:")
@@ -168,11 +167,13 @@ type RefreshTokenBean struct {
 	DeviceID string `json:"device_id"`
 }
 
-func RefreshToken() {
-	if conf.SysConfigNow.RefreshToken == "" {
-		fmt.Println("config.json 中没有配置 refresh token")
-		return
-	}
+type RefreshTokenCallback func(authorization string, refreshToken string, driveId string)
+
+func RefreshToken(refreshToken string, callback RefreshTokenCallback) {
+	//if conf.SysConfigNow.RefreshToken == "" {
+	//	fmt.Println("config.json 中没有配置 refresh token")
+	//	return
+	//}
 
 	var result *RefreshTokenBean = nil
 
@@ -180,7 +181,7 @@ func RefreshToken() {
 		Url:    "https://websv.aliyundrive.com/token/refresh",
 		Method: ajax.POST,
 		Json: map[string]interface{}{
-			"refresh_token": conf.SysConfigNow.RefreshToken,
+			"refresh_token": refreshToken,
 		},
 		Header: map[string]string{
 			"Content-Type": "application/json; charset=utf-8",
@@ -193,7 +194,7 @@ func RefreshToken() {
 			if err != nil {
 				fmt.Println("JSON 解析发生错误", err)
 			}
-			conf.SaveTokenConf(result.AccessToken, result.RefreshToken, result.DefaultDriveID)
+			callback(result.AccessToken, result.RefreshToken, result.DefaultDriveID)
 		},
 		Fail: func(status int, errMsg string) {
 			fmt.Println("网络连接失败-RefreshToken")
@@ -219,23 +220,23 @@ type GetDownloadUrlBean struct {
 	} `json:"ratelimit"`
 }
 
-func GeoDownloadUrl(fileMsg FileMsgBean) string {
-	return GetDownloadUrlByFileIdAndFileName(fileMsg.FileID, fileMsg.Name)
+func GeoDownloadUrl(authorization string, driveId string, fileMsg FileMsgBean) string {
+	return GetDownloadUrlByFileIdAndFileName(authorization, driveId, fileMsg.FileID, fileMsg.Name)
 }
 
-func GetDownloadUrlByFileIdAndFileName(fileId string, fileName string) string {
+func GetDownloadUrlByFileIdAndFileName(authorization string, driveId string, fileId string, fileName string) string {
 	var result *GetDownloadUrlBean = nil
 
 	ajax.Send(ajax.Request{
 		Url:    aliUrl + "/file/get_download_url",
 		Method: ajax.POST,
 		Json: map[string]interface{}{
-			"drive_id":   conf.SysConfigNow.DriveID,
+			"drive_id":   driveId,
 			"file_id":    fileId,
 			"file_name":  fileName,
 			"expire_sec": 7200,
 		},
-		Header: buildHeader(true),
+		Header: buildHeader(authorization, true),
 		Success: func(response *ajax.Response) {
 			err := json.Unmarshal([]byte(response.Body), &result)
 			if err != nil {
@@ -256,7 +257,7 @@ func GetDownloadUrlByFileIdAndFileName(fileId string, fileName string) string {
 }
 
 //=========================================
-func buildHeader(auth bool) map[string]string {
+func buildHeader(authorization string, auth bool) map[string]string {
 	res := map[string]string{
 		"origin": "https://www.aliyundrive.com",
 		//"referer": "https://www.aliyundrive.com/",
@@ -266,7 +267,7 @@ func buildHeader(auth bool) map[string]string {
 		"user-agent":      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36",
 	}
 	if auth {
-		res["authorization"] = "Bearer " + conf.SysConfigNow.Authorization
+		res["authorization"] = "Bearer " + authorization
 	}
 
 	return res

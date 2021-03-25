@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-	"github.com/Ericwyn/Andex/conf"
 	"github.com/Ericwyn/Andex/service"
 	"github.com/gin-gonic/gin"
 	"time"
@@ -23,7 +22,7 @@ func pages(ctx *gin.Context) {
 	if !service.IsPathTrue(path) {
 		ctx.HTML(200, "error.html", gin.H{
 			"errorNote":    "你访问的页面不存在, 或者路径未缓存",
-			"andexVersion": conf.AndexServerVersion,
+			"andexVersion": service.AndexServerVersion,
 		})
 		return
 	}
@@ -52,13 +51,13 @@ func pages(ctx *gin.Context) {
 				"fileDetail":     fileDetail,
 				"navPath":        navPath, // 父路径
 				"apiRequestTime": fmt.Sprint(1.0*(time.Now().UnixNano()-startTime.UnixNano())/1000000, "ms"),
-				"andexVersion":   conf.AndexServerVersion,
+				"andexVersion":   service.AndexServerVersion,
 			})
 			return
 		} else {
 			ctx.HTML(200, "error.html", gin.H{
 				"errorNote":    "获取文件详情失败了",
-				"andexVersion": conf.AndexServerVersion,
+				"andexVersion": service.AndexServerVersion,
 			})
 			return
 		}
@@ -80,14 +79,14 @@ func pages(ctx *gin.Context) {
 				"apiRequestTime": fmt.Sprint(1.0*(time.Now().UnixNano()-startTime.UnixNano())/1000000, "ms"),
 				"readme":         readmeText,
 				"hasReadme":      hasReadme,
-				"andexVersion":   conf.AndexServerVersion,
+				"andexVersion":   service.AndexServerVersion,
 			})
 
 			return
 		} else {
 			ctx.HTML(200, "error.html", gin.H{
 				"errorNote":    "获取文件夹详情失败",
-				"andexVersion": conf.AndexServerVersion,
+				"andexVersion": service.AndexServerVersion,
 			})
 			return
 		}
@@ -109,7 +108,7 @@ func download(ctx *gin.Context) {
 	if !service.IsPathTrue(path) {
 		ctx.HTML(200, "error.html", gin.H{
 			"errorNote":    "你访问的文件路径不存在, 或路径未缓存",
-			"andexVersion": conf.AndexServerVersion,
+			"andexVersion": service.AndexServerVersion,
 		})
 		return
 	}
@@ -124,14 +123,14 @@ func download(ctx *gin.Context) {
 		} else {
 			ctx.HTML(200, "error.html", gin.H{
 				"errorNote":    "文件下载地址获取失败",
-				"andexVersion": conf.AndexServerVersion,
+				"andexVersion": service.AndexServerVersion,
 			})
 			return
 		}
 	} else {
 		ctx.HTML(200, "error.html", gin.H{
 			"errorNote":    "该路径不是可下载文件",
-			"andexVersion": conf.AndexServerVersion,
+			"andexVersion": service.AndexServerVersion,
 		})
 		return
 	}

@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"github.com/Ericwyn/Andex/conf"
+	"github.com/Ericwyn/Andex/modal"
 	"sort"
 	"strings"
 
@@ -34,7 +34,7 @@ type FileDetailBean struct {
 	Path        string
 }
 
-type Path struct {
+type Path1 struct {
 	Name   string // 路径地址
 	FileId string // 路径的 fileId
 	IsDir  bool   // 类型，
@@ -54,8 +54,8 @@ type NavPath struct {
 
 // 用来存储 path 与 fileId 的对应, 会同步到 pathLog.json 里面
 // 默认是 root 文件夹
-var driverRootPath *Path
-var pathMap = map[string]Path{}
+var driverRootPath *modal.AndexPath
+var pathMapBuff = map[string]modal.AndexPath{}
 
 // 格式化 query 参数
 func FormatPathQuery(path string) string {
@@ -76,11 +76,11 @@ func FormatPathQuery(path string) string {
 // 检查 config.json 当中的 rootPath 设置是否正确
 func CheckRootPathSet() bool {
 
-	conf.SysConfigNow.RootPath = FormatPathQuery(conf.SysConfigNow.RootPath)
+	SysConfigNow.RootPath = FormatPathQuery(SysConfigNow.RootPath)
 
-	fmt.Println("检查 RootPath 设置:", conf.SysConfigNow.RootPath)
+	fmt.Println("检查 RootPath 设置:", SysConfigNow.RootPath)
 
-	pathSplit := strings.Split(conf.SysConfigNow.RootPath, "/")
+	pathSplit := strings.Split(SysConfigNow.RootPath, "/")
 	fileIdNow := "root"
 	fmt.Print("验证文件夹路径: ")
 	for _, pathName := range pathSplit {
@@ -88,7 +88,7 @@ func CheckRootPathSet() bool {
 			fileIdNow = "root"
 			continue
 		}
-		folderList := api.FolderList(fileIdNow)
+		folderList := api.FolderList(SysConfigNow.Authorization, SysConfigNow.DriveID, fileIdNow)
 
 		pathFlag := false
 
@@ -101,40 +101,75 @@ func CheckRootPathSet() bool {
 			}
 		}
 		if !pathFlag {
-			fmt.Println("文件夹路径", conf.SysConfigNow.RootPath, "错误, 无法找到文件夹:", pathName)
+			fmt.Println("文件夹路径", SysConfigNow.RootPath, "错误, 无法找到文件夹:", pathName)
 			return false
 		}
 	}
 	fmt.Println()
 	fmt.Println("文件夹路径验证成功, FileId:", fileIdNow)
 
-	driverRootPath = &Path{
+	driverRootPath = &modal.AndexPath{
 		Name:   "/",
 		FileId: fileIdNow,
 		IsDir:  true,
 	}
 
 	// 只有在 user config 的 rootPath 更新的情况下， 才去更新 pathMap.json， 否则沿用旧的
-	LoadPathMapFromLocal()
+	var err error
+	pathMapBuff, err = modal.LoadPathMap()
+	if err != nil {
+		fmt.Println("从数据库载入 path map 缓存失败:", err)
+		return false
+	}
+
 	// 看看本地缓存文件里面的 / 和 /root 其 fileId 与最新的是否一致
-	if _, ok := pathMap["/"]; ok {
-		fmt.Println("旧 Root Path -> FileId:", pathMap["/"].FileId)
+	if _, ok := pathMapBuff["/"]; ok {
+		fmt.Println("旧 Root Path -> FileId:", pathMapBuff["/"].FileId)
 		fmt.Println("旧 Root Path -> FileId:", driverRootPath.FileId)
 		// 不一致的情况需要刷新 pathMap
-		if pathMap["/"].FileId != driverRootPath.FileId {
+		if pathMapBuff["/"].FileId != driverRootPath.FileId {
 			fmt.Println("检测到 rootPath 设置已更新， 清除 path map 缓存")
-			pathMap["/"] = *driverRootPath
-			pathMap["/root"] = *driverRootPath
-			savePathMapToLocal()
+			modal.DeleteAllPath()
+
+			pathMapBuff["/"] = modal.AndexPath{
+				Path:     "/",
+				Name:     driverRootPath.Name,
+				FileId:   driverRootPath.FileId,
+				IsDir:    driverRootPath.IsDir,
+				Password: driverRootPath.Password,
+			}
+			pathMapBuff["/root"] = modal.AndexPath{
+				Path:     "/root",
+				Name:     driverRootPath.Name,
+				FileId:   driverRootPath.FileId,
+				IsDir:    driverRootPath.IsDir,
+				Password: driverRootPath.Password,
+			}
+
+			modal.SavePathMap(pathMapBuff)
 		} else {
 			fmt.Println("rootPath 设置未变更")
 		}
 	} else {
 		fmt.Println("无法从已有 pathMap 缓存当中找到根目录 FileId 设置")
 		// 如果 pathMap 压根没有 / 的映射
-		pathMap["/"] = *driverRootPath
-		pathMap["/root"] = *driverRootPath
-		savePathMapToLocal()
+		pathMapBuff["/"] = modal.AndexPath{
+			Path:     "/",
+			Name:     driverRootPath.Name,
+			FileId:   driverRootPath.FileId,
+			IsDir:    driverRootPath.IsDir,
+			Password: driverRootPath.Password,
+		}
+		pathMapBuff["/root"] = modal.AndexPath{
+			Path:     "/root",
+			Name:     driverRootPath.Name,
+			FileId:   driverRootPath.FileId,
+			IsDir:    driverRootPath.IsDir,
+			Password: driverRootPath.Password,
+		}
+
+		// 根目录 file id 未设置，证明是第一次
+		modal.SavePathMap(pathMapBuff)
 	}
 	return true
 }
@@ -144,7 +179,7 @@ func IsPathTrue(path string) bool {
 
 	// 查找能否从 pathMap 里面找到这个 path 对应的 fileId
 	fmt.Println("请求", path)
-	if _, ok := pathMap[path]; !ok {
+	if _, ok := pathMapBuff[path]; !ok {
 		fmt.Println("无法从该路径找到对应的 fileId: ", path)
 		return false
 	}
@@ -154,7 +189,7 @@ func IsPathTrue(path string) bool {
 // 是否为文件
 // 返回参数1代表是否是文件， 参数2代表路径是否正确
 func IsPathIsFile(path string) bool {
-	return !pathMap[path].IsDir
+	return !pathMapBuff[path].IsDir
 }
 
 // 传入一个文件路径, 获取该文件的详情
@@ -190,13 +225,17 @@ func GetFileDetail(path string) (*FileDetailBean, bool) {
 }
 
 func GetFileDownloadUrl(path string) *FileDownMsgBean {
-	if _, ok := pathMap[path]; !ok {
+	if _, ok := pathMapBuff[path]; !ok {
 		return nil
 	}
 
-	fileDetail := pathMap[path]
+	fileDetail := pathMapBuff[path]
 	if !fileDetail.IsDir {
-		url := api.GetDownloadUrlByFileIdAndFileName(fileDetail.FileId, fileDetail.Name)
+		url := api.GetDownloadUrlByFileIdAndFileName(
+			SysConfigNow.Authorization,
+			SysConfigNow.DriveID,
+			fileDetail.FileId,
+			fileDetail.Name)
 		if url != "" {
 			return &FileDownMsgBean{
 				Name: fileDetail.Name,
@@ -211,7 +250,10 @@ func GetFileDownloadUrl(path string) *FileDownMsgBean {
 // 如果可以找到的话, 就返回 PathDetailBean, true, 如果不行的话返回 nil, false
 // 如果 api 请求失败的话, 会返回 [], true
 func GetPathDetail(path string) ([]PathDetailBean, bool) {
-	folderList := api.FolderList(pathMap[path].FileId)
+	folderList := api.FolderList(
+		SysConfigNow.Authorization,
+		SysConfigNow.DriveID,
+		pathMapBuff[path].FileId)
 	if folderList == nil || folderList.Items == nil {
 		fmt.Println("路径:", path, "获取 folderList 失败")
 		return nil, false
@@ -219,7 +261,9 @@ func GetPathDetail(path string) ([]PathDetailBean, bool) {
 
 	result := make([]PathDetailBean, 0)
 
-	pathMapUpdateFlag := false
+	//pathMapUpdateFlag := false
+	// 需要被更新的 path 的 list
+	listNeedToSave := make([]modal.AndexPath, 0)
 
 	// 更新 pathMap 缓存, 刷新到本地
 	for _, fileMsgBean := range folderList.Items {
@@ -240,35 +284,40 @@ func GetPathDetail(path string) ([]PathDetailBean, bool) {
 		})
 
 		// 更新缓存, 无论是文件还是文件夹都会缓存下来
-		if _, ok := pathMap[filePath]; ok {
-			if pathMap[filePath].FileId != fileMsgBean.FileID ||
-				pathMap[filePath].Name != fileMsgBean.Name ||
-				pathMap[filePath].IsDir != (fileMsgBean.Type == "folder") {
-				// 需要更新缓存
-				pathMapUpdateFlag = true
-				pathMap[filePath] = Path{
+
+		if _, ok := pathMapBuff[filePath]; ok {
+			if pathMapBuff[filePath].FileId != fileMsgBean.FileID ||
+				pathMapBuff[filePath].Name != fileMsgBean.Name ||
+				pathMapBuff[filePath].IsDir != (fileMsgBean.Type == "folder") {
+
+				pathTemp := modal.AndexPath{
+					Path:   filePath,
 					Name:   fileMsgBean.Name,
 					FileId: fileMsgBean.FileID,
 					IsDir:  fileMsgBean.Type == "folder",
 				}
+				pathMapBuff[filePath] = pathTemp
+				listNeedToSave = append(listNeedToSave, pathTemp)
 			}
 		} else {
-			// 需要加入缓存
-			pathMapUpdateFlag = true
-			pathMap[filePath] = Path{
+			pathTemp := modal.AndexPath{
+				Path:   filePath,
 				Name:   fileMsgBean.Name,
 				FileId: fileMsgBean.FileID,
 				IsDir:  fileMsgBean.Type == "folder",
 			}
+			pathMapBuff[filePath] = pathTemp
+			listNeedToSave = append(listNeedToSave, pathTemp)
 		}
 
 	}
 
-	if pathMapUpdateFlag {
+	if len(listNeedToSave) > 0 {
 		// 将缓存刷新到本地
 		// TODO 如果 /a/b -> 映射为 xxx, 之后改名为 /a/bb, 那么 /a/bb 映射为 xxx, 但是 /a/b 将不会删除
 		// TODO 清除旧的缓存
-		savePathMapToLocal()
+		modal.DeleteAllPath()
+		modal.SaveAndexPathList(listNeedToSave)
 	}
 
 	// result 排序
@@ -306,10 +355,10 @@ func GetNavPathList(path string) []NavPath {
 }
 
 func GetReadmeText() (string, bool) {
-	if conf.ReadmeText == "" {
+	if ReadmeText == "" {
 		return "", false
 	} else {
-		return conf.ReadmeText, true
+		return ReadmeText, true
 	}
 }
 
