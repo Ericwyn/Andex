@@ -63,6 +63,30 @@ func adminLogin(ctx *gin.Context) {
 		}
 	}
 }
+func adminLogout(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+
+	if session.Get("hadLogin") != nil && session.Get("hadLogin").(bool) {
+		//fmt.Println("用户已登录")
+		session.Delete("hadLogin")
+		err := session.Save()
+
+		if err != nil {
+			ctx.JSON(200, gin.H{
+				"code": "4003",
+				"msg":  "服务器错误",
+			})
+			fmt.Println("服务器错误", err)
+			return
+		} else {
+			ctx.JSON(200, gin.H{
+				"code": "1000",
+				"msg":  "操作成功",
+			})
+			return
+		}
+	}
+}
 
 // 文件/文件夹页面获取接口
 func pages(ctx *gin.Context) {
@@ -70,10 +94,12 @@ func pages(ctx *gin.Context) {
 
 	session := sessions.Default(ctx)
 
+	templateName := "folder.html"
 	hadLogin := false
 	if session.Get("hadLogin") != nil && session.Get("hadLogin").(bool) {
 		//fmt.Println("用户已登录")
 		hadLogin = true
+		templateName = "adminFolder.html"
 	}
 
 	if !hasPathQuery {
@@ -138,7 +164,7 @@ func pages(ctx *gin.Context) {
 				readmeText, hasReadme = service.GetReadmeText()
 			}
 
-			ctx.HTML(200, "folder.html", gin.H{
+			ctx.HTML(200, templateName, gin.H{
 				"pathDetail":     pathDetail,
 				"navPathList":    navPathList,
 				"navPathLength":  len(navPathList),

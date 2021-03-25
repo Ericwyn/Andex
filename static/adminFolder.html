@@ -32,19 +32,26 @@
     </style>
     <title>Andex云盘</title>
 </head>
-<body>
 
+<body >
 <div class="mdui-appbar">
     <div class="mdui-toolbar mdui-color-theme">
         <a href="javascript:;" class="mdui-typo-headline" onclick="gotoDir('/')">Andex云盘</a>
         <a href="javascript:;" class="mdui-typo-title"></a>
         <div class="mdui-toolbar-spacer"></div>
 
-        <!-- 登录按钮 -->
-        <a href="javascript:headBtnClick();" class="mdui-btn mdui-btn-icon">
-            <i class="mdui-icon material-icons">lock_outline</i>
+        <div><p>管理后台</p></div>
+        <a  class="mdui-btn mdui-btn-icon"
+            mdui-menu="{target: '#menu-admin-setting',position: 'bottom',covered:true,subMenuDelay:50}">
+            <i class="mdui-icon material-icons mdui-color-theme-accent">
+                settings
+            </i>
         </a>
-
+        <ul class="mdui-menu" id="menu-admin-setting">
+            <li class="mdui-menu-item">
+                <a href="javascript:logout();" class="mdui-ripple">退出登录</a>
+            </li>
+        </ul>
     </div>
 </div>
 
@@ -76,9 +83,7 @@
                 <th class="mdui-hidden-sm-down">创建</th>
                 <th class="mdui-hidden-sm-down">更新</th>
                 <th>大小</th>
-                {{if .hadLogin}}
                 <th>操作</th>
-                {{end}}
             </tr>
             </thead>
             <tbody>
@@ -104,6 +109,17 @@
                     <td  onclick="gotoDir('{{$detail.Path}}')" class="mdui-hidden-sm-down" style="width: 15%;">{{$detail.UpdateTime}}</td>
                     <td  onclick="gotoDir('{{$detail.Path}}')" style="width: 5%;">{{$detail.Size}}</td>
 
+                    <td style="width: 10%">
+                        <i class="mdui-icon material-icons mdui-color-theme-accent"
+                           mdui-menu="{target: '#menu-{{$i}}',position: 'bottom',covered:true,subMenuDelay:50}">
+                            more_vert
+                        </i>
+                        <ul class="mdui-menu" id="menu-{{$i}}">
+                            <li class="mdui-menu-item">
+                                <a href="javascript:;" class="mdui-ripple">设置密码</a>
+                            </li>
+                        </ul>
+                    </td>
                 </tr>
 
             {{end}}
@@ -144,55 +160,34 @@
 {{/*   只在有 readme 的时候才添加这些内容     */}}
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-    let markdown={{.readme}};
+    let markdown={{.readme}}
     let markdownHtml = marked(markdown);
     document.getElementById("spinner").style.visibility = 'none'
     document.getElementById("markdown").innerHTML = markdownHtml;
 </script>
 {{end}}
 
-<!--普通用户JS-->
+<!--管理员页面 js -->
 <script>
-    function headBtnClick(){
-        mdui.dialog({
-            title: '管理员登录',
-            content: `
-                    <div class="">需要输入管理员密码才可进入管理页面</div>
-                    <div class="mdui-textfield">
-                        <input class="mdui-textfield-input" id="pw" type="password" placeholder="请输入管理员密码"/>
-                    </div>
-                `,
-            buttons: [
-                {
-                    text: '取消'
-                },
-                {
-                    text: '确认',
-                    onClick: function(){
-                        AJAX({
-                            url: "adminLogin",
-                            method: AJAX_METHOD.POST,
-                            json: {
-                                password: document.getElementById("pw").value
-                            },
-                            success: function (res){
-                                let resJson = JSON.parse(res)
-                                console.log(resJson)
-                                if (resJson.code !== "1000") {
-                                    mdui.alert(resJson.msg);
-                                } else {
-                                    window.location.reload();
-                                }
-                            },
-                            fail: function (){
-                                mdui.alert("管理员密码错误");
-                            }
-                        })
-                    }
+    function logout(){
+        // TODO
+        AJAX({
+            url: "adminLogout",
+            method: AJAX_METHOD.POST,
+            success: function (res){
+                let resJson = JSON.parse(res)
+                console.log(resJson)
+                if (resJson.code !== "1000") {
+                    mdui.alert(resJson.msg);
+                } else {
+                    window.location.reload();
                 }
-            ]
-        });
+            },
+            fail: function (){
+                mdui.alert("管理员密码错误");
+            }
+        })
+
     }
 </script>
-
 </html>

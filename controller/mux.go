@@ -17,6 +17,7 @@ func initAPI(router *gin.Engine) {
 	router.GET("/download", download)
 
 	router.POST("/adminLogin", adminLogin)
+	router.POST("/adminLogout", adminLogout)
 }
 
 // 返回全局路由, 包括静态资源
