@@ -23,10 +23,23 @@ func SaveAndexPath(path AndexPath) error {
 	return nil
 }
 
-func SaveAndexPathList(paths []AndexPath) {
+func SaveAndexPathList(paths []AndexPath) error {
+	session := sqlEngine.NewSession()
+	defer session.Close()
+
+	var sql = "INSERT OR REPLACE INTO `andex_path` (`path`,`name`,`file_id`,`is_dir`,`password`) VALUES (?,?,?,?,?)"
 	for _, path := range paths {
-		SaveAndexPath(path)
+		_, err := session.Exec(sql, path.Path, path.Name, path.FileId, path.IsDir, path.Password)
+		if err != nil {
+			session.Rollback()
+			return err
+		}
 	}
+	err := session.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type void interface{}
@@ -90,7 +103,7 @@ func LoadPathMap() (map[string]AndexPath, error) {
 func DeleteAllPath() {
 	_, err := sqlEngine.Exec("DELETE FROM `andex_path`")
 	if err != nil {
-		fmt.Println("ClearPathMap", err)
+		fmt.Println("DeleteAllPath ", err)
 		return
 	}
 }
@@ -101,4 +114,34 @@ func SavePathMap(pathMap map[string]AndexPath) {
 		pathList = append(pathList, value)
 	}
 	SaveAndexPathList(pathList)
+}
+
+// 获取加密/解密操作的所有路径，包含该 fileId 对应的路径，及其所有子路径
+func GetAllSubPathsByFileId(fileId string) ([]AndexPath, error) {
+
+	resPathList := make([]AndexPath, 0)
+
+	andexPathsListOfFileId := make([]AndexPath, 0)
+	// 获取路径
+	err := sqlEngine.Where("`file_id` like ?", fileId).Find(&andexPathsListOfFileId)
+	if err != nil {
+		return nil, err
+	}
+
+	resPathList = append(resPathList, andexPathsListOfFileId...)
+	// 获取 paths 的所有子路径
+	for _, andexPathOfFileId := range andexPathsListOfFileId {
+		subPathList := make([]AndexPath, 0)
+		var subPathStart string
+		if andexPathOfFileId.Path != "/" {
+			subPathStart = andexPathOfFileId.Path + "/"
+		} else {
+			subPathStart = andexPathOfFileId.Path
+		}
+
+		sqlEngine.Where("`path` like '"+subPathStart+"%'").Find(&subPathList)
+		resPathList = append(resPathList, subPathList...)
+	}
+
+	return resPathList, nil
 }

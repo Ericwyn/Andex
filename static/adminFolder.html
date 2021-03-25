@@ -102,7 +102,13 @@
                             {{else}}
                                 <i class="mdui-icon material-icons mdui-m-r-1">insert_drive_file</i>
                             {{end}}
-                                {{$detail.Name}}
+
+                            {{$detail.Name}}
+
+                            {{if $detail.HadPassword }}
+                            <i class="mdui-icon material-icons">lock_outline</i>
+                            {{end}}
+
                         </p>
                     </td>
                     <td  onclick="gotoDir('{{$detail.Path}}')" class="mdui-hidden-sm-down" style="width: 15%;">{{$detail.CreateTime}}</td>
@@ -115,9 +121,16 @@
                             more_vert
                         </i>
                         <ul class="mdui-menu" id="menu-{{$i}}">
+                            {{if $detail.HadPassword }}
                             <li class="mdui-menu-item">
-                                <a href="javascript:;" class="mdui-ripple">设置密码</a>
+                                <a href="javascript:removePassword('{{$detail.Path}}');" class="mdui-ripple">移除密码</a>
                             </li>
+                            {{else}}
+                            <li class="mdui-menu-item">
+                                <a href="javascript:setPassword('{{$detail.Path}}');" class="mdui-ripple">设置密码</a>
+                            </li>
+                            {{end}}
+
                         </ul>
                     </td>
                 </tr>
@@ -169,6 +182,12 @@
 
 <!--管理员页面 js -->
 <script>
+
+    let windowsLocation = window.location;
+    function refreshPage(){
+        windowsLocation.reload()
+    }
+
     function logout(){
         // TODO
         AJAX({
@@ -187,7 +206,91 @@
                 mdui.alert("管理员密码错误");
             }
         })
-
     }
+
+    function setPassword(path){
+        mdui.dialog({
+            title: '设置访问密码',
+            content: `
+                    <div class="">请输入该路径访问密码，该路径及其所有子路径都会被加密</div>
+                    <div class="mdui-textfield">
+                        <input class="mdui-textfield-input" id="path_pw" type="text" placeholder="请输入访问密码"/>
+                    </div>
+                `,
+            buttons: [
+                {
+                    text: '取消'
+                },
+                {
+                    text: '确认',
+                    onClick: function(){
+                        AJAX({
+                            url: "setPassword",
+                            method: AJAX_METHOD.POST,
+                            json: {
+                                path:path,
+                                password: document.getElementById("path_pw").value,
+                            },
+                            success: function (res){
+                                let resJson = JSON.parse(res)
+                                console.log(resJson)
+                                if (resJson.code !== "1000") {
+                                    mdui.alert(resJson.msg);
+                                } else {
+                                    mdui.alert("密码设置成功", function () {
+                                        refreshPage();
+                                    })
+                                }
+                            },
+                            fail: function (){
+                                mdui.alert("管理员密码错误");
+                            }
+                        })
+                    }
+                }
+            ]
+        });
+    }
+
+    function removePassword(path){
+        mdui.dialog({
+            title: '删除访问密码',
+            content: `
+                    <div class="">是否删除该路径访问密码，该路径及其所有子路径的访问密码都会被删除</div>
+                `,
+            buttons: [
+                {
+                    text: '取消'
+                },
+                {
+                    text: '确认',
+                    onClick: function(){
+                        AJAX({
+                            url: "removePassword",
+                            method: AJAX_METHOD.POST,
+                            json: {
+                                path:path,
+                            },
+                            success: function (res){
+                                let resJson = JSON.parse(res)
+                                console.log(resJson)
+                                if (resJson.code !== "1000") {
+                                    mdui.alert(resJson.msg);
+                                } else {
+                                    mdui.alert("密码移除成功", function () {
+                                        refreshPage();
+                                    })
+                                }
+                            },
+                            fail: function (){
+                                mdui.alert("管理员密码错误");
+                            }
+                        })
+                    }
+                }
+            ]
+        });
+    }
+
 </script>
 </html>

@@ -97,7 +97,12 @@
                             {{else}}
                                 <i class="mdui-icon material-icons mdui-m-r-1">insert_drive_file</i>
                             {{end}}
-                                {{$detail.Name}}
+
+                            {{$detail.Name}}
+
+                            {{if $detail.HadPassword }}
+                            <i class="mdui-icon material-icons">lock_outline</i>
+                            {{end}}
                         </p>
                     </td>
                     <td  onclick="gotoDir('{{$detail.Path}}')" class="mdui-hidden-sm-down" style="width: 15%;">{{$detail.CreateTime}}</td>

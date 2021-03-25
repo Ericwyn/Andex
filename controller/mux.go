@@ -18,6 +18,8 @@ func initAPI(router *gin.Engine) {
 
 	router.POST("/adminLogin", adminLogin)
 	router.POST("/adminLogout", adminLogout)
+	router.POST("/setPassword", setPassword)
+	router.POST("/removePassword", removePassword)
 }
 
 // 返回全局路由, 包括静态资源

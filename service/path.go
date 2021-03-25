@@ -3,11 +3,11 @@ package service
 import (
 	"fmt"
 	"github.com/Ericwyn/Andex/modal"
+	"github.com/Ericwyn/GoTools/date"
 	"sort"
 	"strings"
 
 	"github.com/Ericwyn/Andex/api"
-	"github.com/Ericwyn/GoTools/date"
 )
 
 // 获取这个路径下面的文件列表
@@ -20,6 +20,7 @@ type PathDetailBean struct {
 	Path        string
 	DownloadUrl string
 	Size        string
+	HadPassword bool
 }
 
 // 获取这个路径下面的文件列表
@@ -271,35 +272,25 @@ func GetPathDetail(path string) ([]PathDetailBean, bool) {
 		filePath := path + "/" + fileMsgBean.Name
 		filePath = strings.ReplaceAll(filePath, "//", "/")
 
-		// 构造 PathDetailBean
-		result = append(result, PathDetailBean{
-			Name:        fileMsgBean.Name,
-			Type:        fileMsgBean.Type,
-			Path:        filePath,
-			CreateTime:  date.Format(fileMsgBean.CreatedAt, "yyyy-MM-dd HH:mm"),
-			UpdateTime:  date.Format(fileMsgBean.UpdatedAt, "yyyy-MM-dd HH:mm"),
-			DownloadUrl: fileMsgBean.DownloadURL,
-			Size:        byteCountBinary(fileMsgBean.Size),
-			ParentPath:  "",
-		})
-
 		// 更新缓存, 无论是文件还是文件夹都会缓存下来
-
 		if _, ok := pathMapBuff[filePath]; ok {
 			if pathMapBuff[filePath].FileId != fileMsgBean.FileID ||
 				pathMapBuff[filePath].Name != fileMsgBean.Name ||
 				pathMapBuff[filePath].IsDir != (fileMsgBean.Type == "folder") {
 
+				// path 更改
 				pathTemp := modal.AndexPath{
 					Path:   filePath,
 					Name:   fileMsgBean.Name,
 					FileId: fileMsgBean.FileID,
 					IsDir:  fileMsgBean.Type == "folder",
+					Password: pathMapBuff[filePath].Password, // 新路径继承旧路径的密码
 				}
 				pathMapBuff[filePath] = pathTemp
 				listNeedToSave = append(listNeedToSave, pathTemp)
 			}
 		} else {
+			// path 添加
 			pathTemp := modal.AndexPath{
 				Path:   filePath,
 				Name:   fileMsgBean.Name,
@@ -310,13 +301,26 @@ func GetPathDetail(path string) ([]PathDetailBean, bool) {
 			listNeedToSave = append(listNeedToSave, pathTemp)
 		}
 
+		// 构造 PathDetailBean， 此处会返回给页面前端
+		result = append(result, PathDetailBean{
+			Name:        fileMsgBean.Name,
+			Type:        fileMsgBean.Type,
+			Path:        filePath,
+			CreateTime:  date.Format(fileMsgBean.CreatedAt, "yyyy-MM-dd HH:mm"),
+			UpdateTime:  date.Format(fileMsgBean.UpdatedAt, "yyyy-MM-dd HH:mm"),
+			DownloadUrl: fileMsgBean.DownloadURL,
+			Size:        byteCountBinary(fileMsgBean.Size),
+			ParentPath:  "",
+			HadPassword: pathMapBuff[filePath].Password != "", // 路径是否需要密码才能访问
+		})
+
+
 	}
 
 	if len(listNeedToSave) > 0 {
 		// 将缓存刷新到本地
 		// TODO 如果 /a/b -> 映射为 xxx, 之后改名为 /a/bb, 那么 /a/bb 映射为 xxx, 但是 /a/b 将不会删除
 		// TODO 清除旧的缓存
-		modal.DeleteAllPath()
 		modal.SaveAndexPathList(listNeedToSave)
 	}
 
@@ -352,6 +356,37 @@ func GetNavPathList(path string) []NavPath {
 	}
 
 	return navPathList
+}
+
+func SetPathPassword(path string, password string) bool {
+	if _,ok := pathMapBuff[path];!ok {
+		fmt.Println("密码设置路径不存在", path)
+		return false
+	}
+	// 密码设置是根据 fileId 设置，同个 fileId 的多个路径
+	paths, err := modal.GetAllSubPathsByFileId(pathMapBuff[path].FileId)
+	if err != nil {
+		fmt.Println("加密路径时候获取 AndexPath 失败", err)
+		return false
+	} else {
+		newPaths := make([]modal.AndexPath, 0)
+		for _, pathTemp := range paths {
+			fmt.Println("密码设置路径:", pathTemp.Path,", PW:", password)
+			pathTemp.Password = password
+			newPaths = append(newPaths, pathTemp)
+		}
+		err := modal.SaveAndexPathList(newPaths)
+		if err != nil {
+			fmt.Println("加密路径数据保存失败", err)
+			return false
+		} else {
+			// 更新到 map 缓存
+			for _, pathTemp := range newPaths {
+				pathMapBuff[pathTemp.Path] = pathTemp
+			}
+			return true
+		}
+	}
 }
 
 func GetReadmeText() (string, bool) {
