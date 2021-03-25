@@ -3,13 +3,78 @@ package controller
 import (
 	"fmt"
 	"github.com/Ericwyn/Andex/service"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"time"
 )
 
+type LoginBody struct {
+	Password string `json:"password"`
+}
+
+func adminLogin(ctx *gin.Context) {
+	var loginBody LoginBody
+	err := ctx.BindJSON(&loginBody)
+
+	if err != nil {
+		ctx.JSON(200, gin.H{
+			"code": "4000",
+			"msg":  "参数错误",
+		})
+		fmt.Println("登录参数错误", err)
+		return
+	} else {
+		if service.UserConfNow.AdminPassword == "" {
+			ctx.JSON(200, gin.H{
+				"code": "4000",
+				"msg":  "参数错误",
+			})
+			fmt.Println("管理员密码未设置", err)
+			return
+		}
+		if loginBody.Password == service.UserConfNow.AdminPassword {
+			session := sessions.Default(ctx)
+
+			// 设置session数据
+			session.Set("hadLogin", true)
+			// 保存session数据
+			err := session.Save()
+
+			if err != nil {
+				ctx.JSON(200, gin.H{
+					"code": "4003",
+					"msg":  "服务器错误",
+				})
+				fmt.Println("服务器错误", err)
+				return
+			} else {
+				ctx.JSON(200, gin.H{
+					"code": "1000",
+					"msg":  "登录成功",
+				})
+				return
+			}
+		} else {
+			ctx.JSON(200, gin.H{
+				"code": "4001",
+				"msg":  "密码错误",
+			})
+			return
+		}
+	}
+}
+
 // 文件/文件夹页面获取接口
 func pages(ctx *gin.Context) {
 	path, hasPathQuery := ctx.GetQuery("p")
+
+	session := sessions.Default(ctx)
+
+	hadLogin := false
+	if session.Get("hadLogin") != nil && session.Get("hadLogin").(bool) {
+		//fmt.Println("用户已登录")
+		hadLogin = true
+	}
 
 	if !hasPathQuery {
 		path = "/"
@@ -52,6 +117,7 @@ func pages(ctx *gin.Context) {
 				"navPath":        navPath, // 父路径
 				"apiRequestTime": fmt.Sprint(1.0*(time.Now().UnixNano()-startTime.UnixNano())/1000000, "ms"),
 				"andexVersion":   service.AndexServerVersion,
+				//"hadLogin": hadLogin,
 			})
 			return
 		} else {
@@ -80,6 +146,7 @@ func pages(ctx *gin.Context) {
 				"readme":         readmeText,
 				"hasReadme":      hasReadme,
 				"andexVersion":   service.AndexServerVersion,
+				"hadLogin":       hadLogin,
 			})
 
 			return

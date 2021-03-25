@@ -35,11 +35,13 @@
 <body>
 <div class="mdui-appbar">
     <div class="mdui-toolbar mdui-color-theme">
-{{/*        <a href="javascript:;" class="mdui-btn mdui-btn-icon">*/}}
-{{/*        </a>*/}}
-        <a href="javascript:;" class="mdui-typo-headline" onclick="gotoDir('/')">Andex云盘</a>
+        <a href="javascript:;" class="mdui-typo-headline" onclick="gotoDir('/')">Andex云盘 {{if .hadLogin}}-管理员界面{{end}}</a>
         <a href="javascript:;" class="mdui-typo-title"></a>
         <div class="mdui-toolbar-spacer"></div>
+
+        <!-- 登录按钮 -->
+        <a href="javascript:headBtnClick();" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">explore</i></a>
+
     </div>
 </div>
 
@@ -139,6 +141,59 @@
     let markdownHtml = marked(markdown);
     document.getElementById("spinner").style.visibility = 'none'
     document.getElementById("markdown").innerHTML = markdownHtml;
+</script>
+{{end}}
+
+{{if .hadLogin}}
+<!--管理员JS-->
+<script>
+    function headBtnClick(){
+        // TODO
+    }
+</script>
+{{else}}
+<!--普通用户JS-->
+<script>
+    function headBtnClick(){
+        mdui.dialog({
+            title: '管理员登录',
+            content: `
+                    <div class="">需要输入管理员密码才可进入管理页面</div>
+                    <div class="mdui-textfield">
+                        <input class="mdui-textfield-input" id="pw" type="password" placeholder="请输入管理员密码"/>
+                    </div>
+                `,
+            buttons: [
+                {
+                    text: '取消'
+                },
+                {
+                    text: '确认',
+                    onClick: function(){
+                        AJAX({
+                            url: "adminLogin",
+                            method: AJAX_METHOD.POST,
+                            json: {
+                                password: document.getElementById("pw").value
+                            },
+                            success: function (res){
+                                let resJson = JSON.parse(res)
+                                console.log(resJson)
+                                if (resJson.code !== "1000") {
+                                    mdui.alert(resJson.msg);
+                                } else {
+                                    window.location.reload();
+                                }
+                            },
+                            fail: function (){
+                                mdui.alert("管理员密码错误");
+                            }
+                        })
+                    }
+                }
+            ]
+        });
+    }
 </script>
 {{end}}
 

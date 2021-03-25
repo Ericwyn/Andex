@@ -21,18 +21,19 @@ type ConfigKey string
 
 // Andex 系统配置， 存储在 .conf 文件夹内
 type AndexSysConf struct {
-	RefreshToken     string    `json:"refresh_token"`
-	Authorization    string    `json:"authorization"`
-	DriveID          string    `json:"drive_id"`
-	RootPath         string    `json:"root_path"`
-	LastGetTokenTime time.Time `json:"last_get_token_time"`
+	RefreshToken     string
+	Authorization    string
+	DriveID          string
+	RootPath         string
+	LastGetTokenTime time.Time
 }
 
 // Andex 用户配置, 存储在 ./
 type AndexUserConf struct {
-	RefreshToken string `json:"refresh_token"`
-	RootPath     string `json:"root_path"`
-	Port         string `json: "port"`
+	RefreshToken  string `json:"refresh_token"`
+	RootPath      string `json:"root_path"`
+	Port          string `json:"port"`
+	AdminPassword string `json:"admin_password"`
 }
 
 var UserConfNow *AndexUserConf
