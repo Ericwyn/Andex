@@ -13,7 +13,7 @@ const RestApiAuthorizationError = "4001"
 const RestApiServerError = "4003"
 const RestApiSuccess = "1000"
 
-func adminLogin(ctx *gin.Context) {
+func apiAdminLogin(ctx *gin.Context) {
 	var loginBody loginBody
 	err := ctx.BindJSON(&loginBody)
 
@@ -65,7 +65,7 @@ func adminLogin(ctx *gin.Context) {
 	}
 }
 
-func adminLogout(ctx *gin.Context) {
+func apiAdminLogout(ctx *gin.Context) {
 	session := sessions.Default(ctx)
 
 	if session.Get("hadLogin") != nil && session.Get("hadLogin").(bool) {
@@ -91,13 +91,13 @@ func adminLogout(ctx *gin.Context) {
 }
 
 type passwordBody struct {
-	Path string `json:"path"`
+	Path     string `json:"path"`
 	Password string `json:"password"`
 }
 
 // 加密某个文件夹，会将该文件夹及其子文件夹全部加密
-func setPassword(ctx *gin.Context) {
-	if checkLogin(ctx){
+func apiSetPassword(ctx *gin.Context) {
+	if checkLogin(ctx) {
 		var body passwordBody
 		err := ctx.BindJSON(&body)
 		if err != nil {
@@ -110,7 +110,7 @@ func setPassword(ctx *gin.Context) {
 		}
 
 		body.Path = service.FormatPathQuery(body.Path)
-		if !service.IsPathTrue(body.Path) || strings.Trim(body.Password," ") == "" {
+		if !service.IsPathTrue(body.Path) || strings.Trim(body.Password, " ") == "" {
 			ctx.JSON(200, gin.H{
 				"code": RestApiParamError,
 				"msg":  "参数错误",
@@ -130,8 +130,8 @@ func setPassword(ctx *gin.Context) {
 }
 
 // 解密文件夹，会将该文件夹及其所有子文件夹全部解密
-func removePassword(ctx *gin.Context) {
-	if checkLogin(ctx){
+func apiRemovePassword(ctx *gin.Context) {
+	if checkLogin(ctx) {
 		var body passwordBody
 		err := ctx.BindJSON(&body)
 		if err != nil {
@@ -163,7 +163,6 @@ func removePassword(ctx *gin.Context) {
 		return
 	}
 }
-
 
 func checkLogin(ctx *gin.Context) bool {
 	session := sessions.Default(ctx)

@@ -21,6 +21,7 @@ type PathDetailBean struct {
 	DownloadUrl string
 	Size        string
 	HadPassword bool
+	HadAccess   bool
 }
 
 // 获取这个路径下面的文件列表
@@ -201,7 +202,7 @@ func GetFileDetail(path string) (*FileDetailBean, bool) {
 	parentPath := path[0 : len(path)-len(split[len(split)-1])]
 	parentPath = FormatPathQuery(parentPath)
 
-	dirDetails, haveDetail := GetPathDetail(parentPath)
+	dirDetails, haveDetail := GetPathDetailFromAli(parentPath)
 
 	if !haveDetail {
 		return nil, false
@@ -250,7 +251,7 @@ func GetFileDownloadUrl(path string) *FileDownMsgBean {
 // 通过一个 path, 如果 /share/wx, 来获取这个 path 下面对应的 PathDetailBean
 // 如果可以找到的话, 就返回 PathDetailBean, true, 如果不行的话返回 nil, false
 // 如果 api 请求失败的话, 会返回 [], true
-func GetPathDetail(path string) ([]PathDetailBean, bool) {
+func GetPathDetailFromAli(path string) ([]PathDetailBean, bool) {
 	folderList := api.FolderList(
 		SysConfigNow.Authorization,
 		SysConfigNow.DriveID,
@@ -280,10 +281,10 @@ func GetPathDetail(path string) ([]PathDetailBean, bool) {
 
 				// path 更改
 				pathTemp := modal.AndexPath{
-					Path:   filePath,
-					Name:   fileMsgBean.Name,
-					FileId: fileMsgBean.FileID,
-					IsDir:  fileMsgBean.Type == "folder",
+					Path:     filePath,
+					Name:     fileMsgBean.Name,
+					FileId:   fileMsgBean.FileID,
+					IsDir:    fileMsgBean.Type == "folder",
 					Password: pathMapBuff[filePath].Password, // 新路径继承旧路径的密码
 				}
 				pathMapBuff[filePath] = pathTemp
@@ -291,11 +292,13 @@ func GetPathDetail(path string) ([]PathDetailBean, bool) {
 			}
 		} else {
 			// path 添加
+			// TODO 验证自己父文件夹是否有锁
 			pathTemp := modal.AndexPath{
-				Path:   filePath,
-				Name:   fileMsgBean.Name,
-				FileId: fileMsgBean.FileID,
-				IsDir:  fileMsgBean.Type == "folder",
+				Path:     filePath,
+				Name:     fileMsgBean.Name,
+				FileId:   fileMsgBean.FileID,
+				IsDir:    fileMsgBean.Type == "folder",
+				Password: "",
 			}
 			pathMapBuff[filePath] = pathTemp
 			listNeedToSave = append(listNeedToSave, pathTemp)
@@ -312,8 +315,8 @@ func GetPathDetail(path string) ([]PathDetailBean, bool) {
 			Size:        byteCountBinary(fileMsgBean.Size),
 			ParentPath:  "",
 			HadPassword: pathMapBuff[filePath].Password != "", // 路径是否需要密码才能访问
+			HadAccess:   false,
 		})
-
 
 	}
 
@@ -359,7 +362,7 @@ func GetNavPathList(path string) []NavPath {
 }
 
 func SetPathPassword(path string, password string) bool {
-	if _,ok := pathMapBuff[path];!ok {
+	if _, ok := pathMapBuff[path]; !ok {
 		fmt.Println("密码设置路径不存在", path)
 		return false
 	}
@@ -371,7 +374,7 @@ func SetPathPassword(path string, password string) bool {
 	} else {
 		newPaths := make([]modal.AndexPath, 0)
 		for _, pathTemp := range paths {
-			fmt.Println("密码设置路径:", pathTemp.Path,", PW:", password)
+			fmt.Println("密码设置路径:", pathTemp.Path, ", PW:", password)
 			pathTemp.Password = password
 			newPaths = append(newPaths, pathTemp)
 		}
@@ -387,6 +390,14 @@ func SetPathPassword(path string, password string) bool {
 			return true
 		}
 	}
+}
+
+func GetAndexPath(path string) *modal.AndexPath {
+	if _, ok := pathMapBuff[path]; ok {
+		path := pathMapBuff[path]
+		return &path
+	}
+	return nil
 }
 
 func GetReadmeText() (string, bool) {

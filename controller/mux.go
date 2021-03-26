@@ -3,6 +3,7 @@ package controller
 import (
 	"crypto/rand"
 	"fmt"
+	"github.com/Ericwyn/Andex/modal"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"math/big"
@@ -13,13 +14,16 @@ import (
 
 // 设置 API 路由
 func initAPI(router *gin.Engine) {
-	router.GET("/", pages)
-	router.GET("/download", download)
+	router.GET("/", apiPages)
+	router.GET("/download", apiDownload)
 
-	router.POST("/adminLogin", adminLogin)
-	router.POST("/adminLogout", adminLogout)
-	router.POST("/setPassword", setPassword)
-	router.POST("/removePassword", removePassword)
+	router.POST("/adminLogin", apiAdminLogin)
+	router.POST("/adminLogout", apiAdminLogout)
+	router.POST("/setPassword", apiSetPassword)
+	router.POST("/removePassword", apiRemovePassword)
+
+	// 申请某个路径的访问权限
+	router.POST("/pathPermRequest", apiPathPermRequest)
 }
 
 // 返回全局路由, 包括静态资源
@@ -28,7 +32,7 @@ func NewMux() *gin.Engine {
 	router := gin.Default()
 	loadStaticPath(router)
 
-	store := cookie.NewStore(GeneralSessionKey())
+	store := cookie.NewStore(GetCookieKey())
 	router.Use(sessions.Sessions("andex-session", store))
 
 	router.Use(gin.Logger())
@@ -53,8 +57,18 @@ func loadStaticPath(router *gin.Engine) {
 
 var keyParisLen = 64
 
-func GeneralSessionKey() []byte {
-	return []byte(string(GeneralRandomStr(keyParisLen)))
+func GetCookieKey() []byte {
+	key := modal.GetConfig(modal.TypeCookieKey, "NULL").(string)
+	if key != "NULL" {
+		return []byte(key)
+	} else {
+		key = GeneralRandomStr(keyParisLen)
+		err := modal.SaveConf(modal.TypeCookieKey, key)
+		if err != nil {
+			fmt.Println("save cookie key error", err)
+		}
+		return []byte(key)
+	}
 }
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*("

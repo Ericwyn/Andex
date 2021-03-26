@@ -14,6 +14,8 @@ const TypeDriveID ConfigType = "driveID"
 const TypeRootPath ConfigType = "rootPath"
 const TypeLastGetTokenTime ConfigType = "lastGetTokenTime"
 
+const TypeCookieKey ConfigType = "cookieKey"
+
 // Andex 配置
 type AndexConfig struct {
 	Key   ConfigType `xorm:"pk"`
@@ -36,7 +38,7 @@ func LoadConfMap() (map[ConfigType]AndexConfig, error) {
 func SaveConf(configType ConfigType, value interface{}) error {
 	var err error
 	if inList(configType,
-		[]ConfigType{TypeRefreshToken, TypeAuthorization, TypeDriveID, TypeRootPath}) {
+		[]ConfigType{TypeRefreshToken, TypeAuthorization, TypeDriveID, TypeRootPath, TypeCookieKey}) {
 		// 字符串配置保存
 		err = saveAndexConf(configType, value.(string))
 	} else if inList(configType, []ConfigType{TypeLastGetTokenTime}) {
@@ -52,7 +54,7 @@ func GetConfig(configType ConfigType, defValue interface{}) interface{} {
 		return defValue
 	}
 	if inList(configType,
-		[]ConfigType{TypeRefreshToken, TypeAuthorization, TypeDriveID, TypeRootPath}) {
+		[]ConfigType{TypeRefreshToken, TypeAuthorization, TypeDriveID, TypeRootPath, TypeCookieKey}) {
 		// 字符串配置保存
 		return confValue
 	} else if inList(configType, []ConfigType{TypeLastGetTokenTime}) {

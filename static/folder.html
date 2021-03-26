@@ -85,29 +85,41 @@
             {{range $i, $detail := .pathDetail}}
 
                 <tr data-href="{{$detail.Path}}" data-type="{{$detail.Type}}">
-                    <td  onclick="gotoDir('{{$detail.Path}}')">
+                    {{if $detail.HadPassword }}
+                        {{if $detail.HadAccess }}
+                            <td onclick="gotoDir('{{$detail.Path}}')">
+                        {{else}}
+                            <td onclick="gotoPermDir('{{$detail.Path}}')">
+                        {{end}}
+                    {{else}}
+                        <td onclick="gotoDir('{{$detail.Path}}')">
+                    {{end}}
+
                         <p style="word-break:break-all;
                             width:auto;
                             display:block;
                             word-wrap : break-word ;
                             overflow: hidden ;
                             white-space:normal">
-                            {{if eq $detail.Type "folder"}}
-                                <i class="mdui-icon material-icons mdui-m-r-1">folder</i>
+                            {{if $detail.HadPassword }}
+                                <i class="mdui-icon material-icons mdui-m-r-1">lock</i>
                             {{else}}
+                                {{if eq $detail.Type "folder"}}
+                                <i class="mdui-icon material-icons mdui-m-r-1">folder</i>
+                                {{else}}
                                 <i class="mdui-icon material-icons mdui-m-r-1">insert_drive_file</i>
+                                {{end}}
                             {{end}}
 
                             {{$detail.Name}}
-
-                            {{if $detail.HadPassword }}
-                            <i class="mdui-icon material-icons">lock_outline</i>
-                            {{end}}
                         </p>
                     </td>
-                    <td  onclick="gotoDir('{{$detail.Path}}')" class="mdui-hidden-sm-down" style="width: 15%;">{{$detail.CreateTime}}</td>
-                    <td  onclick="gotoDir('{{$detail.Path}}')" class="mdui-hidden-sm-down" style="width: 15%;">{{$detail.UpdateTime}}</td>
-                    <td  onclick="gotoDir('{{$detail.Path}}')" style="width: 5%;">{{$detail.Size}}</td>
+                    <td onclick=""
+                        class="mdui-hidden-sm-down" style="width: 15%;">{{$detail.CreateTime}}</td>
+                    <td onclick=""
+                        class="mdui-hidden-sm-down" style="width: 15%;">{{$detail.UpdateTime}}</td>
+                    <td onclick=""
+                        style="width: 5%;">{{$detail.Size}}</td>
 
                 </tr>
 
@@ -164,7 +176,7 @@
             content: `
                     <div class="">需要输入管理员密码才可进入管理页面</div>
                     <div class="mdui-textfield">
-                        <input class="mdui-textfield-input" id="pw" type="password" placeholder="请输入管理员密码"/>
+                        <input autocomplete="off" class="mdui-textfield-input" id="pw" type="password" placeholder="请输入管理员密码"/>
                     </div>
                 `,
             buttons: [

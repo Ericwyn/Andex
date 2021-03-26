@@ -97,17 +97,23 @@
                             word-wrap : break-word ;
                             overflow: hidden ;
                             white-space:normal">
-                            {{if eq $detail.Type "folder"}}
-                                <i class="mdui-icon material-icons mdui-m-r-1">folder</i>
+
+
+                            {{if $detail.HadPassword }}
+                            <i class="mdui-icon material-icons mdui-m-r-1">lock</i>
                             {{else}}
-                                <i class="mdui-icon material-icons mdui-m-r-1">insert_drive_file</i>
+
+                            {{if eq $detail.Type "folder"}}
+                            <i class="mdui-icon material-icons mdui-m-r-1">folder</i>
+                            {{else}}
+                            <i class="mdui-icon material-icons mdui-m-r-1">insert_drive_file</i>
+                            {{end}}
+
+
                             {{end}}
 
                             {{$detail.Name}}
 
-                            {{if $detail.HadPassword }}
-                            <i class="mdui-icon material-icons">lock_outline</i>
-                            {{end}}
 
                         </p>
                     </td>
@@ -214,7 +220,7 @@
             content: `
                     <div class="">请输入该路径访问密码，该路径及其所有子路径都会被加密</div>
                     <div class="mdui-textfield">
-                        <input class="mdui-textfield-input" id="path_pw" type="text" placeholder="请输入访问密码"/>
+                        <input autocomplete="off" class="mdui-textfield-input" id="path_pw" type="text" placeholder="请输入访问密码"/>
                     </div>
                 `,
             buttons: [
@@ -237,9 +243,10 @@
                                 if (resJson.code !== "1000") {
                                     mdui.alert(resJson.msg);
                                 } else {
-                                    mdui.alert("密码设置成功", function () {
-                                        refreshPage();
-                                    })
+                                    // mdui.alert("密码设置成功", function () {
+                                    //     refreshPage();
+                                    // })
+                                    refreshPage()
                                 }
                             },
                             fail: function (){
@@ -277,9 +284,10 @@
                                 if (resJson.code !== "1000") {
                                     mdui.alert(resJson.msg);
                                 } else {
-                                    mdui.alert("密码移除成功", function () {
-                                        refreshPage();
-                                    })
+                                    // mdui.alert("密码移除成功", function () {
+                                    //     refreshPage();
+                                    // })
+                                    refreshPage()
                                 }
                             },
                             fail: function (){

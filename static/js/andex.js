@@ -1,3 +1,4 @@
+// 访问不需要权限的目录
 function gotoDir(path) {
     if (path === null || path === undefined){
         return
@@ -8,6 +9,54 @@ function gotoDir(path) {
     } else {
         window.location.search =  "?p=" + path
     }
+}
+
+// 访问需要权限的目录
+function gotoPermDir(path) {
+    if (path === null || path === undefined){
+        return
+    }
+
+    mdui.dialog({
+        title: '管理员登录',
+        content: `
+                    <div class="">该路径需要输入密码访问</div>
+                    <div class="mdui-textfield">
+                        <input class="mdui-textfield-input" autocomplete="off" id="path-req-pw" type="password" placeholder="请输入访问密码"/>
+                    </div>
+                `,
+        buttons: [
+            {
+                text: '取消'
+            },
+            {
+                text: '确认',
+                onClick: function(){
+                    AJAX({
+                        url: "pathPermRequest",
+                        method: AJAX_METHOD.POST,
+                        json: {
+                            path : path,
+                            password: document.getElementById("path-req-pw").value
+                        },
+                        success: function (res){
+                            let resJson = JSON.parse(res)
+                            console.log(resJson)
+                            if (resJson.code !== "1000") {
+                                mdui.alert("授权失败");
+                            } else {
+                                gotoDir(path)
+                            }
+                        },
+                        fail: function (status){
+                            mdui.alert("网络错误: " + status);
+                        }
+                    })
+                }
+            }
+        ]
+    });
+
 }
 
 function downFile() {
