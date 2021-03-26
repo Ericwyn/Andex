@@ -180,7 +180,6 @@ func CheckRootPathSet() bool {
 func IsPathTrue(path string) bool {
 
 	// 查找能否从 pathMap 里面找到这个 path 对应的 fileId
-	fmt.Println("请求", path)
 	if _, ok := pathMapBuff[path]; !ok {
 		fmt.Println("无法从该路径找到对应的 fileId: ", path)
 		return false

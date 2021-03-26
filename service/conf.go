@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const AndexServerVersion = "V1.0 Beta"
+const AndexServerVersion = "V1.1"
 
 const UserConfigFilePath = "config.json"
 
@@ -34,15 +34,18 @@ type AndexUserConf struct {
 	RootPath      string `json:"root_path"`
 	Port          string `json:"port"`
 	AdminPassword string `json:"admin_password"`
+	SiteName      string `json:"site_name"`
 }
 
 var UserConfNow *AndexUserConf
 
 // 默认的用户配置模板
 var defaultUserConf = AndexUserConf{
-	RefreshToken: "NULL",
-	RootPath:     "/",
-	Port:         "8080",
+	RefreshToken:  "NULL",
+	RootPath:      "/",
+	Port:          "8080",
+	AdminPassword: "",
+	SiteName:      "Andex云盘",
 }
 
 var SysConfigNow = AndexSysConf{

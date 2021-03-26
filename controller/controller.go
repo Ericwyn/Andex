@@ -31,6 +31,7 @@ func apiPages(ctx *gin.Context) {
 		ctx.HTML(200, "error.html", gin.H{
 			"errorNote":    "你访问的页面不存在, 或者路径未缓存",
 			"andexVersion": service.AndexServerVersion,
+			"siteName":     service.UserConfNow.SiteName,
 		})
 		return
 	}
@@ -41,6 +42,7 @@ func apiPages(ctx *gin.Context) {
 		ctx.HTML(200, "error.html", gin.H{
 			"errorNote":    "你访问的页面不存在, 或者路径未缓存",
 			"andexVersion": service.AndexServerVersion,
+			"siteName":     service.UserConfNow.SiteName,
 		})
 		return
 	}
@@ -48,6 +50,7 @@ func apiPages(ctx *gin.Context) {
 		ctx.HTML(200, "error.html", gin.H{
 			"errorNote":    "您无权访问该页面",
 			"andexVersion": service.AndexServerVersion,
+			"siteName":     service.UserConfNow.SiteName,
 		})
 		return
 	}
@@ -135,6 +138,7 @@ func openFilePage(navPathList []service.NavPath, path string, ctx *gin.Context) 
 			"navPath":        navPath, // 父路径
 			"apiRequestTime": fmt.Sprint(1.0*(time.Now().UnixNano()-startTime.UnixNano())/1000000, "ms"),
 			"andexVersion":   service.AndexServerVersion,
+			"siteName":       service.UserConfNow.SiteName,
 			//"hadLogin": hadLogin,
 		})
 		return
@@ -142,6 +146,7 @@ func openFilePage(navPathList []service.NavPath, path string, ctx *gin.Context) 
 		ctx.HTML(200, "error.html", gin.H{
 			"errorNote":    "获取文件详情失败了",
 			"andexVersion": service.AndexServerVersion,
+			"siteName":     service.UserConfNow.SiteName,
 		})
 		return
 	}
@@ -210,6 +215,7 @@ func openDirPage(navPathList []service.NavPath, session sessions.Session, path s
 			"readme":         readmeText,
 			"hasReadme":      hasReadme,
 			"andexVersion":   service.AndexServerVersion,
+			"siteName":       service.UserConfNow.SiteName,
 			"hadLogin":       hadLogin,
 		})
 
@@ -218,6 +224,7 @@ func openDirPage(navPathList []service.NavPath, session sessions.Session, path s
 		ctx.HTML(200, "error.html", gin.H{
 			"errorNote":    "获取文件夹详情失败",
 			"andexVersion": service.AndexServerVersion,
+			"siteName":     service.UserConfNow.SiteName,
 		})
 		return
 	}
@@ -320,6 +327,7 @@ func apiDownload(ctx *gin.Context) {
 		ctx.HTML(200, "error.html", gin.H{
 			"errorNote":    "你访问的文件路径不存在, 或路径未缓存",
 			"andexVersion": service.AndexServerVersion,
+			"siteName":     service.UserConfNow.SiteName,
 		})
 		return
 	}
@@ -335,6 +343,7 @@ func apiDownload(ctx *gin.Context) {
 			ctx.HTML(200, "error.html", gin.H{
 				"errorNote":    "文件下载地址获取失败",
 				"andexVersion": service.AndexServerVersion,
+				"siteName":     service.UserConfNow.SiteName,
 			})
 			return
 		}
@@ -342,6 +351,7 @@ func apiDownload(ctx *gin.Context) {
 		ctx.HTML(200, "error.html", gin.H{
 			"errorNote":    "该路径不是可下载文件",
 			"andexVersion": service.AndexServerVersion,
+			"siteName":     service.UserConfNow.SiteName,
 		})
 		return
 	}
