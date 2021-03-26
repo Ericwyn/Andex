@@ -6,12 +6,19 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"strings"
+	"time"
 )
 
 const RestApiParamError = "4000"
 const RestApiAuthorizationError = "4001"
 const RestApiServerError = "4003"
 const RestApiSuccess = "1000"
+
+var loginErrorTimeNow = 0
+
+const maxLoginErrorTime = 7 // 一个小时内最大登录错误次数
+
+var loginLock = false
 
 func apiAdminLogin(ctx *gin.Context) {
 	var loginBody loginBody
@@ -33,6 +40,21 @@ func apiAdminLogin(ctx *gin.Context) {
 			fmt.Println("管理员密码未设置", err)
 			return
 		}
+
+		// 密码
+		if loginErrorTimeNow >= maxLoginErrorTime {
+			if !loginLock {
+				loginLock = true
+				go removeTimeAfterOneHours()
+			}
+			ctx.JSON(200, gin.H{
+				"code": RestApiAuthorizationError,
+				"msg":  "密码错误!",
+			})
+			fmt.Println("登录次数过多: " + getClientIP(ctx))
+			return
+		}
+
 		if loginBody.Password == service.UserConfNow.AdminPassword {
 			session := sessions.Default(ctx)
 
@@ -49,6 +71,7 @@ func apiAdminLogin(ctx *gin.Context) {
 				fmt.Println("服务器错误", err)
 				return
 			} else {
+				loginErrorTimeNow = 0
 				ctx.JSON(200, gin.H{
 					"code": RestApiSuccess,
 					"msg":  "登录成功",
@@ -56,13 +79,25 @@ func apiAdminLogin(ctx *gin.Context) {
 				return
 			}
 		} else {
+			loginErrorTimeNow++
 			ctx.JSON(200, gin.H{
 				"code": RestApiAuthorizationError,
 				"msg":  "密码错误",
 			})
+			fmt.Println("登录密码错误", loginBody.Password, getClientIP(ctx))
 			return
 		}
 	}
+}
+
+func removeTimeAfterOneHours() {
+	fmt.Println("===== LOGIN LOCK BEGIN ======")
+	timeTicker := time.NewTicker(time.Hour * 1)
+	<-timeTicker.C
+	loginErrorTimeNow = 0
+	loginLock = false
+	fmt.Println("===== LOGIN LOCK END ======")
+	timeTicker.Stop()
 }
 
 func apiAdminLogout(ctx *gin.Context) {
@@ -176,5 +211,17 @@ func checkLogin(ctx *gin.Context) bool {
 		})
 		return false
 	}
+}
 
+func getClientIP(ctx *gin.Context) string {
+	ip := ctx.Request.Header.Get("X-Forwarded-For")
+	if strings.Contains(ip, "127.0.0.1") || ip == "" {
+		ip = ctx.Request.Header.Get("X-real-ip")
+	}
+
+	if ip == "" {
+		return "127.0.0.1"
+	}
+
+	return ip
 }
