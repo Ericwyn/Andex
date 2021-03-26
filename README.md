@@ -9,24 +9,33 @@
 ```json
 {
   "refresh_token": "REFRESH_TOKEN",
-  "root_path": "/publicDir" 
+  "root_path": "/publicDir",
+  "port": "8080",
+  "admin_password": "adminPassword",
+  "site_name": "Andex云盘"
 }
 ```
  - `refresh_token` 阿里云盘 refresh token
  
  - `root_path` 云盘内文件夹的路径，如 `/public/Andex`， 该路径将会映射到 Andex 首页路径, 默认为 `/`, 即网盘根目录  
 
+ - `port` 服务运行端口
+
+ - `admin_password` 管理员密码
+
+ - `site_name` 网站名称
+
 ## Feature
  - 根目录文件夹设置
  - 不直接暴露文件夹 id
  - 阿里云盘下载直链获取
  - 网盘 README.md 展示
+ - 文件/文件夹下载加密(密码设置)
 
 ## TODO
  - 提供后台管理/设置/初始化页面
     - README.md 编辑
-    - 文件/文件夹下载加密(密码设置)
-- 文件/文件夹下载次数统计
+ - 文件/文件夹下载次数统计
  - ip 防护/黑名单防护
  
  ## 运行效果
