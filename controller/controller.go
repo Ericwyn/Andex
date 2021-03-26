@@ -315,6 +315,26 @@ func addPathPerm(path string, ctx *gin.Context) error {
 func apiDownload(ctx *gin.Context) {
 	path, hasPathQuery := ctx.GetQuery("p")
 
+	session := sessions.Default(ctx)
+
+	permFlag, err := checkUserPathPerm(path, session)
+	if err != nil {
+		ctx.HTML(200, "error.html", gin.H{
+			"errorNote":    "你访问的页面不存在, 或者路径未缓存",
+			"andexVersion": service.AndexServerVersion,
+			"siteName":     service.UserConfNow.SiteName,
+		})
+		return
+	}
+	if !permFlag {
+		ctx.HTML(200, "error.html", gin.H{
+			"errorNote":    "您无权访问该页面",
+			"andexVersion": service.AndexServerVersion,
+			"siteName":     service.UserConfNow.SiteName,
+		})
+		return
+	}
+
 	if !hasPathQuery {
 		path = "/"
 	}
