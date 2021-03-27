@@ -288,6 +288,7 @@ func addPathPerm(path string, ctx *gin.Context) error {
 	var err error = nil
 	if pathPermOld == nil {
 		session.Set("pathPerm", path)
+		session.Options(sessions.Options{MaxAge: 60 * 60})
 		err = session.Save()
 	} else {
 		pathPermOldStr := pathPermOld.(string)
@@ -301,6 +302,7 @@ func addPathPerm(path string, ctx *gin.Context) error {
 		}
 		if !alreadyAddFlag {
 			session.Set("pathPerm", pathPermOld.(string)+permCookieStrSplit+path)
+			session.Options(sessions.Options{MaxAge: 60 * 60})
 			err = session.Save()
 		}
 	}

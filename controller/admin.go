@@ -60,6 +60,8 @@ func apiAdminLogin(ctx *gin.Context) {
 
 			// 设置session数据
 			session.Set("hadLogin", true)
+			session.Options(sessions.Options{MaxAge: 60 * 60 * 2}) // seconds
+
 			// 保存session数据
 			err := session.Save()
 
