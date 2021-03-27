@@ -109,7 +109,21 @@ function AJAX(ajaxPostData) {
     }
 
     let xhr = new XMLHttpRequest();
-    xhr.open(method, url.replaceAll("//", "/"), true);
+
+    // url format
+    let urlStart = ""
+    if (url.indexOf("https://") === 0) {
+        urlStart = "https://"
+    } else if (url.indexOf("http://") === 0) {
+        urlStart = "http://"
+    }
+    if (url !== "") {
+        url = url.replace(urlStart, "")
+    }
+    url = url.split("//").join('/')
+    url = urlStart + url;
+
+    xhr.open(method, url, true);
 
     // 存放 header
     if(ajaxPostData.header !== undefined){
