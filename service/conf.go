@@ -15,8 +15,6 @@ const AndexServerVersion = "V1.1"
 
 const UserConfigFilePath = "config.json"
 
-const UserReadmeFilePath = "README.md"
-
 type ConfigKey string
 
 // Andex 系统配置， 存储在 .conf 文件夹内
@@ -35,6 +33,7 @@ type AndexUserConf struct {
 	Port          string `json:"port"`
 	AdminPassword string `json:"admin_password"`
 	SiteName      string `json:"site_name"`
+	ReadmePath    string `json:"readme_path"`
 }
 
 var UserConfNow *AndexUserConf
@@ -46,6 +45,7 @@ var defaultUserConf = AndexUserConf{
 	Port:          "8080",
 	AdminPassword: "",
 	SiteName:      "Andex云盘",
+	ReadmePath:    "README.md",
 }
 
 var SysConfigNow = AndexSysConf{
@@ -120,12 +120,12 @@ func LoadConfFromFile() {
 }
 
 func LoadReadmeFile() {
-	readmeFile := file.OpenFile(UserReadmeFilePath)
+	readmeFile := file.OpenFile(UserConfNow.ReadmePath)
 	if readmeFile.Exits() {
 		var err error
-		ReadmeText, err = storage.ReadFileAsString(UserReadmeFilePath)
+		ReadmeText, err = storage.ReadFileAsString(UserConfNow.ReadmePath)
 		if err != nil {
-			fmt.Println("载入 README 文件失败", err)
+			fmt.Println("载入 README 文件失败", UserConfNow.ReadmePath, err)
 		}
 	}
 }
