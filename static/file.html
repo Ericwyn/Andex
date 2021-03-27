@@ -119,6 +119,7 @@
     let filePath = window.location.search;
     filePath = filePath.replace("/?p=", "")
     filePath = filePath.replace("?p=", "")
+    filePath = decodeURIComponent(filePath)
 
     function getRedirectLink(){
         AJAX({
