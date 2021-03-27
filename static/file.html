@@ -83,9 +83,11 @@
                 <button class="mdui-btn mdui-color-blue mdui-text-color-white mdui-center mdui-float-right" onclick="downFile()">文件下载</button>
             </div>
             <div class="mdui-col-xs-6">
+                <button class="mdui-btn mdui-color-blue mdui-text-color-white mdui-center mdui-float-left" onclick="getRedirectLink()">复制直链</button>
+
                 <button id="copyBtn"
-                    data-clipboard-text="null"
-                    class="mdui-btn mdui-color-blue mdui-text-color-white mdui-center mdui-float-left">复制直链</button>
+                    data-clipboard-text=""
+                    class="mdui-btn mdui-color-blue mdui-text-color-white mdui-center mdui-float-left mdui-hidden">直链</button>
             </div>
         </div>
 
@@ -118,30 +120,57 @@
     filePath = filePath.replace("/?p=", "")
     filePath = filePath.replace("?p=", "")
 
-    let directUrl = (location.href.replace(location.search, "") + "download?p=" + filePath)
-    directUrl = decodeURIComponent(directUrl)
-    document.getElementById("copyBtn").setAttribute("data-clipboard-text", directUrl)
+    function getRedirectLink(){
+        AJAX({
+            url: "getRedirectLink",
+            method: AJAX_METHOD.POST,
+            json: {
+                path: filePath
+            },
+            success: function (res){
+                let resJson = JSON.parse(res)
+                if (resJson.code !== "1000") {
+                    mdui.alert(resJson.msg);
+                } else {
+                    // console.log("成功获取直链")
+                    // console.log(resJson)
+                    copyLink(resJson.msg.Url)
+                }
+            },
+            fail: function (){
+                mdui.alert("管理员密码错误");
+            }
+        })
+    }
 
-    let clipboard = new ClipboardJS('#copyBtn');
+    function copyLink(directUrl) {
+        // let directUrl = (location.href.replace(location.search, "") + "download?p=" + filePath)
+        // directUrl = link
+        document.getElementById("copyBtn").setAttribute("data-clipboard-text", directUrl)
 
-    clipboard.on('success', function(e) {
-        if (e.text != "null") {
-            mdui.snackbar({
-                message: '复制成功'
-            });
-        } else {
+        let clipboard = new ClipboardJS('#copyBtn');
+
+        clipboard.on('success', function(e) {
+            if (e.text != "null") {
+                mdui.snackbar({
+                    message: '复制成功'
+                });
+            } else {
+                mdui.snackbar({
+                    message: '复制失败'
+                });
+            }
+            e.clearSelection();
+        });
+
+        clipboard.on('error', function(e) {
             mdui.snackbar({
                 message: '复制失败'
             });
-        }
-        e.clearSelection();
-    });
-
-    clipboard.on('error', function(e) {
-        mdui.snackbar({
-            message: '复制失败'
         });
-    });
+
+        document.getElementById("copyBtn").click();
+    }
 
 </script>
 </html>

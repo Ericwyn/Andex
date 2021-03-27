@@ -21,6 +21,7 @@ func initAPI(router *gin.Engine) {
 	router.POST("/adminLogout", apiAdminLogout)
 	router.POST("/setPassword", apiSetPassword)
 	router.POST("/removePassword", apiRemovePassword)
+	router.POST("/getRedirectLink", apiGetRedirectLink)
 
 	// 申请某个路径的访问权限
 	router.POST("/pathPermRequest", apiPathPermRequest)

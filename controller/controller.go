@@ -17,8 +17,6 @@ type loginBody struct {
 func apiPages(ctx *gin.Context) {
 	path, hasPathQuery := ctx.GetQuery("p")
 
-	session := sessions.Default(ctx)
-
 	if !hasPathQuery {
 		path = "/"
 	}
@@ -36,6 +34,7 @@ func apiPages(ctx *gin.Context) {
 		return
 	}
 
+	session := sessions.Default(ctx)
 	// TODO 验证用户对路径的访问权限
 	permFlag, err := checkUserPathPerm(path, session)
 	if err != nil {
@@ -317,6 +316,14 @@ func addPathPerm(path string, ctx *gin.Context) error {
 func apiDownload(ctx *gin.Context) {
 	path, hasPathQuery := ctx.GetQuery("p")
 
+	if !hasPathQuery {
+		path = "/"
+	}
+
+	// 格式化 query 参数
+	path = service.FormatPathQuery(path)
+
+	// 权限校验
 	session := sessions.Default(ctx)
 
 	permFlag, err := checkUserPathPerm(path, session)
@@ -330,19 +337,12 @@ func apiDownload(ctx *gin.Context) {
 	}
 	if !permFlag {
 		ctx.HTML(200, "error.html", gin.H{
-			"errorNote":    "您无权访问该页面",
+			"errorNote":    "您无权限访问该页面",
 			"andexVersion": service.AndexServerVersion,
 			"siteName":     service.UserConfNow.SiteName,
 		})
 		return
 	}
-
-	if !hasPathQuery {
-		path = "/"
-	}
-
-	// 格式化 query 参数
-	path = service.FormatPathQuery(path)
 
 	// 判断是否是文件
 	if !service.IsPathTrue(path) {
@@ -377,4 +377,68 @@ func apiDownload(ctx *gin.Context) {
 		})
 		return
 	}
+}
+
+// 获取加密路径的直接下载链接
+func apiGetRedirectLink(ctx *gin.Context) {
+	var body passwordBody
+	err := ctx.BindJSON(&body)
+	if err != nil {
+		ctx.JSON(200, gin.H{
+			"code": RestApiServerError,
+			"msg":  "服务器错误",
+		})
+		fmt.Println("服务器错误", err)
+		return
+	}
+
+	// 格式化 query 参数
+	body.Path = service.FormatPathQuery(body.Path)
+
+	// 判断访问路径是否正确
+	if !service.IsPathTrue(body.Path) {
+		ctx.JSON(200, gin.H{
+			"code": RestApiParamError,
+			"msg":  "路径错误",
+		})
+		return
+	}
+
+	// 权限校验
+	session := sessions.Default(ctx)
+
+	permFlag, err := checkUserPathPerm(body.Path, session)
+	if err != nil {
+		ctx.HTML(200, "error.html", gin.H{
+			"errorNote":    "你访问的页面不存在, 或者路径未缓存",
+			"andexVersion": service.AndexServerVersion,
+			"siteName":     service.UserConfNow.SiteName,
+		})
+		return
+	}
+	if !permFlag {
+		ctx.HTML(200, "error.html", gin.H{
+			"errorNote":    "您无权限访问该页面",
+			"andexVersion": service.AndexServerVersion,
+			"siteName":     service.UserConfNow.SiteName,
+		})
+		return
+	}
+
+	// 直链获取
+	url := service.GetFileDownloadUrl(body.Path)
+	if url == nil {
+		ctx.JSON(200, gin.H{
+			"code": RestApiServerError,
+			"msg":  "无法获取下载直链",
+		})
+		return
+	} else {
+		ctx.JSON(200, gin.H{
+			"code": RestApiSuccess,
+			"msg":  url,
+		})
+		return
+	}
+
 }
