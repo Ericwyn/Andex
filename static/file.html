@@ -8,7 +8,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
     <meta name="referrer" content="never">
 
-{{/*    <link rel="stylesheet" href="./css/mdui.css"/>*/}}
+{{/*    <link rel="stylesheet" href="/css/mdui.css"/>*/}}
     <link
             rel="stylesheet"
             href="https://cdn.jsdelivr.net/npm/mdui@1.0.1/dist/css/mdui.min.css"
@@ -106,24 +106,22 @@
     </div>
 </div>
 </body>
-{{/*<script type="text/javascript" src="./js/mdui.js"></script>*/}}
+{{/*<script type="text/javascript" src="/js/mdui.js"></script>*/}}
 <script
         src="https://cdn.jsdelivr.net/npm/mdui@1.0.1/dist/js/mdui.min.js"
         integrity="sha384-gCMZcshYKOGRX9r6wbDrvF+TcCCswSHFucUzUPwka+Gr+uHgjlYvkABr95TCOz3A"
         crossorigin="anonymous"
 ></script>
-<script type="text/javascript" src="./js/andex.js"></script>
-<script type="text/javascript" src="./js/clipboard.min.js"></script>
+<script type="text/javascript" src="/js/andex.js"></script>
+<script type="text/javascript" src="/js/clipboard.min.js"></script>
 <script>
 
-    let filePath = window.location.search;
-    filePath = filePath.replace("/?p=", "")
-    filePath = filePath.replace("?p=", "")
+    let filePath = window.location.pathname;
     filePath = decodeURIComponent(filePath)
 
     function getRedirectLink(){
         AJAX({
-            url: "getRedirectLink",
+            url: "/getRedirectLink",
             method: AJAX_METHOD.POST,
             json: {
                 path: filePath

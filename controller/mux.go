@@ -7,15 +7,29 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"math/big"
+	"strings"
 
-	"github.com/Ericwyn/GoTools/file"
 	"github.com/gin-gonic/gin"
 )
 
 // 设置 API 路由
 func initAPI(router *gin.Engine) {
-	router.GET("/", apiPages)
-	router.GET("/download", apiDownload)
+	//router.GET("/", apiPages)
+	//router.GET("/download", apiDownload)
+
+	// 使用自定义路
+	router.GET("/*requestPath", func(ctx *gin.Context) {
+		requestPath := ctx.Param("requestPath")
+		fmt.Println("request: " + requestPath)
+		downloadFlag := ctx.Query("dl") == "1"
+		if isStaticPath(requestPath) {
+			apiStatic(requestPath, ctx)
+		} else if downloadFlag {
+			apiDownload(requestPath, ctx)
+		} else {
+			apiPages(requestPath, ctx)
+		}
+	})
 
 	router.POST("/adminLogin", apiAdminLogin)
 	router.POST("/adminLogout", apiAdminLogout)
@@ -27,11 +41,21 @@ func initAPI(router *gin.Engine) {
 	router.POST("/pathPermRequest", apiPathPermRequest)
 }
 
+var staticDirAndPath = []string{"/css/", "/fonts/", "/icons/", "/js/", "favicon.ico"}
+
+func isStaticPath(requestPath string) bool {
+	for _, staicPath := range staticDirAndPath {
+		if strings.Index(requestPath, staicPath) == 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // 返回全局路由, 包括静态资源
 func NewMux() *gin.Engine {
 	//gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
-	loadStaticPath(router)
 
 	store := cookie.NewStore(GetCookieKey())
 	router.Use(sessions.Sessions("andex-session", store))
@@ -41,19 +65,6 @@ func NewMux() *gin.Engine {
 
 	initAPI(router)
 	return router
-}
-
-func loadStaticPath(router *gin.Engine) {
-	staticDirPath := "./static"
-	staticDir := file.OpenFile(staticDirPath)
-	children := staticDir.Children()
-	for _, child := range children {
-		if child.IsDir() {
-			fmt.Println("load static router:", "/"+child.Name(), "->", staticDirPath+"/"+child.Name())
-			router.Static(child.Name(), staticDirPath+"/"+child.Name())
-			router.Static("static/"+child.Name(), staticDirPath+"/"+child.Name())
-		}
-	}
 }
 
 var keyParisLen = 64

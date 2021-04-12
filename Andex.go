@@ -19,6 +19,8 @@ import (
 var debugMode = flag.Bool("debug", false, "print sql log and gin debug log")
 
 func main() {
+
+	// TODO, 密码重置之后，用户的访问权限
 	flag.Parse()
 
 	if *debugMode {

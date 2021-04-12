@@ -9,18 +9,16 @@ import (
 	"time"
 )
 
+func apiStatic(path string, ctx *gin.Context) {
+	ctx.File("./static" + path)
+}
+
 type loginBody struct {
 	Password string `json:"password"`
 }
 
 // 文件/文件夹页面获取接口
-func apiPages(ctx *gin.Context) {
-	path, hasPathQuery := ctx.GetQuery("p")
-
-	if !hasPathQuery {
-		path = "/"
-	}
-
+func apiPages(path string, ctx *gin.Context) {
 	// 格式化 query 参数
 	path = service.FormatPathQuery(path)
 
@@ -313,12 +311,7 @@ func addPathPerm(path string, ctx *gin.Context) error {
 }
 
 // 文件下载接口, /download?p=/a/v/c.pdf
-func apiDownload(ctx *gin.Context) {
-	path, hasPathQuery := ctx.GetQuery("p")
-
-	if !hasPathQuery {
-		path = "/"
-	}
+func apiDownload(path string, ctx *gin.Context) {
 
 	// 格式化 query 参数
 	path = service.FormatPathQuery(path)

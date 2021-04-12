@@ -3,12 +3,7 @@ function gotoDir(path) {
     if (path === null || path === undefined){
         return
     }
-    console.log("goto path: " + path)
-    if (path === "/"){
-        window.location.href= window.location.origin
-    } else {
-        window.location.search =  "?p=" + path
-    }
+    window.location.href = path
 }
 
 // 访问需要权限的目录
@@ -60,11 +55,13 @@ function gotoPermDir(path) {
 }
 
 function downFile() {
-    let filePath = window.location.search;
-    filePath = filePath.replace("/?p=", "")
-    filePath = filePath.replace("?p=", "")
-    let newUrl = "download?p=" + filePath
-    window.open(newUrl,"_blank")
+    let filePath = window.location.href
+    if (filePath.indexOf("?")>=0) {
+        filePath = filePath + "&dl=1";
+    } else {
+        filePath = filePath + "?dl=1";
+    }
+    window.open(filePath,"_blank")
 }
 
 const AJAX_METHOD = {
