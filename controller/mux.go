@@ -20,7 +20,7 @@ func initAPI(router *gin.Engine) {
 	// 使用自定义路
 	router.GET("/*requestPath", func(ctx *gin.Context) {
 		requestPath := ctx.Param("requestPath")
-		fmt.Println("request: " + requestPath)
+		//fmt.Println("request: " + requestPath)
 		downloadFlag := ctx.Query("dl") == "1"
 		if isStaticPath(requestPath) {
 			apiStatic(requestPath, ctx)
