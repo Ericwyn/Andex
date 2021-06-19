@@ -2,6 +2,7 @@ package modal
 
 import (
 	"fmt"
+	"github.com/Ericwyn/Andex/util/log"
 	"os"
 	"xorm.io/xorm"
 )
@@ -15,8 +16,8 @@ func InitDb(showSql bool) {
 
 	sqlEngine, err = xorm.NewEngine("sqlite3", "./.conf/andex.db")
 	if err != nil {
-		fmt.Println(err)
-		fmt.Println("\n\n SQL ENGINE INIT FAIL!!")
+		log.E(err)
+		log.E("\n\n SQL ENGINE INIT FAIL!!")
 		os.Exit(-1)
 	}
 
@@ -29,7 +30,7 @@ func InitDb(showSql bool) {
 	err = sqlEngine.Sync2(new(AndexPath), new(AndexConfig))
 	if err != nil {
 		fmt.Println(err)
-		fmt.Println("SYNC TABLE ERROR!!")
+		log.E("SYNC TABLE ERROR!!")
 		os.Exit(-1)
 	}
 }

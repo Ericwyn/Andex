@@ -2,8 +2,8 @@ package controller
 
 import (
 	"crypto/rand"
-	"fmt"
 	"github.com/Ericwyn/Andex/modal"
+	"github.com/Ericwyn/Andex/util/log"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"math/big"
@@ -41,7 +41,7 @@ func initAPI(router *gin.Engine) {
 	router.POST("/pathPermRequest", apiPathPermRequest)
 }
 
-var staticDirAndPath = []string{"/css/", "/fonts/", "/icons/", "/js/", "favicon.ico"}
+var staticDirAndPath = []string{"/css/", "/fonts/", "/icons/", "/js/", "/favicon.ico", "favicon.ico"}
 
 func isStaticPath(requestPath string) bool {
 	for _, staicPath := range staticDirAndPath {
@@ -57,7 +57,7 @@ func NewMux() *gin.Engine {
 	//gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
-	store := cookie.NewStore(GetCookieKey())
+	store := cookie.NewStore(getCookieKey())
 	router.Use(sessions.Sessions("andex-session", store))
 
 	router.Use(gin.Logger())
@@ -69,7 +69,8 @@ func NewMux() *gin.Engine {
 
 var keyParisLen = 64
 
-func GetCookieKey() []byte {
+// 获取 cookie 加密钥匙，首次启动的时候生成随机 cookie key
+func getCookieKey() []byte {
 	key := modal.GetConfig(modal.TypeCookieKey, "NULL").(string)
 	if key != "NULL" {
 		return []byte(key)
@@ -77,7 +78,7 @@ func GetCookieKey() []byte {
 		key = GeneralRandomStr(keyParisLen)
 		err := modal.SaveConf(modal.TypeCookieKey, key)
 		if err != nil {
-			fmt.Println("save cookie key error", err)
+			log.E("save cookie key error", err)
 		}
 		return []byte(key)
 	}

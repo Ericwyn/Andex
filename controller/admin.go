@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/Ericwyn/Andex/service"
+	"github.com/Ericwyn/Andex/util/log"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"strings"
@@ -29,7 +29,7 @@ func apiAdminLogin(ctx *gin.Context) {
 			"code": RestApiParamError,
 			"msg":  "参数错误",
 		})
-		fmt.Println("登录参数错误", err)
+		log.E("登录参数错误", err)
 		return
 	} else {
 		if service.UserConfNow.AdminPassword == "" {
@@ -37,7 +37,7 @@ func apiAdminLogin(ctx *gin.Context) {
 				"code": RestApiParamError,
 				"msg":  "参数错误",
 			})
-			fmt.Println("管理员密码未设置", err)
+			log.E("管理员密码未设置", err)
 			return
 		}
 
@@ -51,7 +51,7 @@ func apiAdminLogin(ctx *gin.Context) {
 				"code": RestApiAuthorizationError,
 				"msg":  "密码错误!",
 			})
-			fmt.Println("登录次数过多: " + getClientIP(ctx))
+			log.E("登录次数过多: " + getClientIP(ctx))
 			return
 		}
 
@@ -70,7 +70,7 @@ func apiAdminLogin(ctx *gin.Context) {
 					"code": RestApiServerError,
 					"msg":  "服务器错误",
 				})
-				fmt.Println("服务器错误", err)
+				log.E("服务器错误", err)
 				return
 			} else {
 				loginErrorTimeNow = 0
@@ -86,19 +86,19 @@ func apiAdminLogin(ctx *gin.Context) {
 				"code": RestApiAuthorizationError,
 				"msg":  "密码错误",
 			})
-			fmt.Println("登录密码错误", loginBody.Password, getClientIP(ctx))
+			log.E("登录密码错误", loginBody.Password, getClientIP(ctx))
 			return
 		}
 	}
 }
 
 func removeTimeAfterOneHours() {
-	fmt.Println("===== LOGIN LOCK BEGIN ======")
+	log.I("===== LOGIN LOCK BEGIN ======")
 	timeTicker := time.NewTicker(time.Hour * 1)
 	<-timeTicker.C
 	loginErrorTimeNow = 0
 	loginLock = false
-	fmt.Println("===== LOGIN LOCK END ======")
+	log.I("===== LOGIN LOCK END ======")
 	timeTicker.Stop()
 }
 
@@ -115,7 +115,7 @@ func apiAdminLogout(ctx *gin.Context) {
 				"code": RestApiServerError,
 				"msg":  "服务器错误",
 			})
-			fmt.Println("服务器错误", err)
+			log.E("服务器错误", err)
 			return
 		} else {
 			ctx.JSON(200, gin.H{
@@ -142,7 +142,7 @@ func apiSetPassword(ctx *gin.Context) {
 				"code": RestApiServerError,
 				"msg":  "服务器错误",
 			})
-			fmt.Println("服务器错误", err)
+			log.E("服务器错误", err)
 			return
 		}
 
@@ -152,7 +152,7 @@ func apiSetPassword(ctx *gin.Context) {
 				"code": RestApiParamError,
 				"msg":  "参数错误",
 			})
-			fmt.Println("服务器错误", err)
+			log.E("服务器错误", err)
 			return
 		}
 
@@ -176,7 +176,7 @@ func apiRemovePassword(ctx *gin.Context) {
 				"code": RestApiServerError,
 				"msg":  "服务器错误",
 			})
-			fmt.Println("服务器错误", err)
+			log.E("服务器错误", err)
 			return
 		}
 
@@ -186,7 +186,7 @@ func apiRemovePassword(ctx *gin.Context) {
 				"code": RestApiParamError,
 				"msg":  "参数错误",
 			})
-			fmt.Println("服务器错误", err)
+			log.E("服务器错误", err)
 			return
 		}
 

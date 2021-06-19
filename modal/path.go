@@ -1,7 +1,7 @@
 package modal
 
 import (
-	"fmt"
+	"github.com/Ericwyn/Andex/util/log"
 )
 
 // Andex 索引缓存
@@ -72,7 +72,7 @@ func DeleteOldAndexPath(paths []AndexPath) {
 
 	_, err := sqlEngine.Exec(sql)
 	if err != nil {
-		fmt.Println("DeleteOldAndexPath:", err)
+		log.E("DeleteOldAndexPath:", err)
 	}
 }
 
@@ -103,7 +103,7 @@ func LoadPathMap() (map[string]AndexPath, error) {
 func DeleteAllPath() {
 	_, err := sqlEngine.Exec("DELETE FROM `andex_path`")
 	if err != nil {
-		fmt.Println("DeleteAllPath ", err)
+		log.E("DeleteAllPath ", err)
 		return
 	}
 }
@@ -139,7 +139,7 @@ func GetAllSubPathsByFileId(fileId string) ([]AndexPath, error) {
 			subPathStart = andexPathOfFileId.Path
 		}
 
-		sqlEngine.Where("`path` like '"+subPathStart+"%'").Find(&subPathList)
+		sqlEngine.Where("`path` like '" + subPathStart + "%'").Find(&subPathList)
 		resPathList = append(resPathList, subPathList...)
 	}
 

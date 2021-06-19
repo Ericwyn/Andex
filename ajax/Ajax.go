@@ -3,7 +3,7 @@ package ajax
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"github.com/Ericwyn/Andex/util/log"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -65,7 +65,7 @@ func Send(reqData Request) {
 	if reqData.Json != nil {
 		byteTemp, err := json.Marshal(reqData.Json)
 		if err != nil {
-			fmt.Println("请求参数JSON化时发生错误:", err)
+			log.E("请求参数JSON化时发生错误:", err)
 			return
 		}
 		body = strings.NewReader(string(byteTemp))
@@ -91,7 +91,7 @@ func Send(reqData Request) {
 	}
 
 	if err != nil {
-		fmt.Println(err)
+		log.E(err)
 		return
 	}
 	// 必须设定该参数,POST参数才能正常提交
@@ -114,7 +114,7 @@ func Send(reqData Request) {
 	resp, err := client.Do(request) //发送请求
 
 	if err != nil {
-		fmt.Println("请求错误 ", err.Error())
+		log.E("请求错误 ", err.Error())
 		return
 		//if reqData.Fail != nil {
 		//	reqData.Fail()
@@ -122,7 +122,7 @@ func Send(reqData Request) {
 	}
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Body 读取错误 ", err.Error())
+		log.E("Body 读取错误 ", err.Error())
 		return
 	}
 

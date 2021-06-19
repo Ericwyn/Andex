@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"github.com/Ericwyn/Andex/service"
+	"github.com/Ericwyn/Andex/util/log"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"strings"
@@ -236,7 +237,7 @@ func apiPathPermRequest(ctx *gin.Context) {
 			"code": RestApiParamError,
 			"msg":  "参数错误",
 		})
-		fmt.Println("登录参数错误", err)
+		log.E("登录参数错误", err)
 		return
 	}
 
@@ -248,7 +249,7 @@ func apiPathPermRequest(ctx *gin.Context) {
 			"code": RestApiParamError,
 			"msg":  "访问路径错误",
 		})
-		fmt.Println("访问路径错误", err)
+		log.E("访问路径错误", body.Path)
 		return
 	}
 
@@ -381,7 +382,7 @@ func apiGetRedirectLink(ctx *gin.Context) {
 			"code": RestApiServerError,
 			"msg":  "服务器错误",
 		})
-		fmt.Println("服务器错误", err)
+		log.E("服务器错误", err)
 		return
 	}
 

@@ -1,7 +1,7 @@
 package modal
 
 import (
-	"fmt"
+	"github.com/Ericwyn/Andex/util/log"
 	"strconv"
 	"time"
 )
@@ -62,7 +62,7 @@ func GetConfig(configType ConfigType, defValue interface{}) interface{} {
 		// 日期配置读取
 		unixTime, err := strconv.ParseInt(confValue, 10, 64)
 		if err != nil {
-			fmt.Println("日期配置读取错误", err)
+			log.E("日期配置读取错误", err)
 			return defValue
 		}
 		return time.Unix(unixTime, 0)

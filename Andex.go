@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/Ericwyn/Andex/controller"
 	"github.com/Ericwyn/Andex/modal"
 	"github.com/Ericwyn/Andex/service"
+	"github.com/Ericwyn/Andex/util/log"
 	"github.com/Ericwyn/GoTools/file"
 	"github.com/gin-gonic/gin"
 	"github.com/go-co-op/gocron"
@@ -24,7 +24,7 @@ func main() {
 	flag.Parse()
 
 	if *debugMode {
-		fmt.Println("DEBUG 模式已打开")
+		log.I("DEBUG 模式已打开")
 	}
 
 	modal.InitDb(*debugMode)
@@ -40,11 +40,11 @@ func main() {
 }
 
 func loadConfig() {
-	fmt.Println("==================== 启动配置 Start ==================== ")
+	log.I("==================== 启动配置 Start ==================== ")
 
 	userConfigFile := file.OpenFile(service.UserConfigFilePath)
 	if !userConfigFile.Exits() {
-		fmt.Println("未检测到配置文件, 创建空白配置文件")
+		log.E("未检测到配置文件, 创建空白配置文件, 请再 ./config.json 中进行参数配置")
 		service.CreateUserConfFile()
 		os.Exit(0)
 	}
@@ -52,54 +52,51 @@ func loadConfig() {
 	// 载入 System 和 User 配置
 	service.LoadConfFromFile()
 	if service.SysConfigNow.RefreshToken == "NULL" {
-		fmt.Println("RefreshToken 未配置")
+		log.E("RefreshToken 未配置")
 		os.Exit(0)
 	}
 
 	// api.RefreshToken() // 不需要每次启动都刷新 refreshToken 和 token
-	fmt.Println("服务运行端口:", service.UserConfNow.Port)
-	fmt.Println()
+	log.I("服务运行端口:", service.UserConfNow.Port)
 
 	if service.SysConfigNow.Authorization == "NULL" {
 		// 如果 Authorization 为 NULL, 先尝试刷新一遍 token
 		service.RefreshToken()
 		if service.SysConfigNow.Authorization == "NULL" {
-			fmt.Println("token 无法获取 RefreshToken 错误或已过期")
+			log.E("token 无法获取 RefreshToken 错误或已过期")
 			os.Exit(0)
 		}
 	} else {
-		fmt.Println("从数据库中载入 Authorization")
+		log.I("从数据库中载入 Authorization")
 	}
 
 	// 通过配置的时间来确认是否过期, 而不是执行一次请求
 	// 在距离上次刷新超过最大时间间隔
 	// refresh token 接口里面 expires 时间是 7200 这里取其 3/4 长度作为最大过期间隔
-	fmt.Println("运行配置载入完毕")
-	fmt.Println()
+	log.I("运行配置载入完毕")
 
 	var maxTokenExpireTime int64 = 60 * 90
-	fmt.Println("token 过期时间设置:", maxTokenExpireTime)
+	log.I("token 过期时间设置:", maxTokenExpireTime)
 	if service.SysConfigNow.LastGetTokenTime.Unix() == (time.Time{}).Unix() ||
 		time.Now().Unix()-service.SysConfigNow.LastGetTokenTime.Unix() > maxTokenExpireTime {
 		service.RefreshToken()
 	} else {
-		fmt.Println("距离上次 token 获取时间已过去:",
+		log.I("距离上次 token 获取时间已过去:",
 			time.Now().Unix()-service.SysConfigNow.LastGetTokenTime.Unix())
 	}
 
-	fmt.Println()
+	log.I()
 	// 验证根目录配置
 	pathSetTrue := service.CheckRootPathSet()
 	if !pathSetTrue {
-		fmt.Println("Andex RootPath 参数设置错误, 请设置为正确的网盘文件夹路径")
+		log.E("Andex RootPath 参数设置错误, 请设置为正确的网盘文件夹路径")
 		os.Exit(0)
 	}
 
 	// 载入 README 文件
 	service.LoadReadmeFile()
 
-	fmt.Println("===================== 启动配置 End =====================")
-	fmt.Println()
+	log.I("===================== 启动配置 End =====================")
 }
 
 var cornFirstFlag = true
@@ -112,7 +109,7 @@ func runCorn() {
 		if cornFirstFlag {
 			cornFirstFlag = false
 		} else {
-			fmt.Println("corn 刷新 token 配置")
+			log.I("corn 执行刷新 token 配置")
 			service.RefreshToken()
 		}
 	})

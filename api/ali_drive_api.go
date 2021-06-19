@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/Ericwyn/Andex/util/log"
 	"time"
 
 	"github.com/Ericwyn/Andex/ajax"
@@ -75,12 +75,12 @@ func FolderList(authorization string, driveId string, parentDirId string) *Folde
 			//fmt.Println(response.Body)
 			err := json.Unmarshal([]byte(response.Body), &result)
 			if err != nil {
-				fmt.Println("JSON 解析发生错误", err)
+				log.E("JSON 解析发生错误", err)
 			}
 		},
 		Fail: func(status int, errMsg string) {
-			fmt.Println("网络连接失败-FolderList")
-			fmt.Println("status:", status, ", errMsg:"+errMsg)
+			log.E("网络连接失败-FolderList")
+			log.E("status:", status, ", errMsg:"+errMsg)
 
 		},
 		Always: nil,
@@ -126,12 +126,12 @@ func UserInfo(authorization string) *UserInfoBean {
 			//fmt.Println(response.Body)
 			err := json.Unmarshal([]byte(response.Body), &result)
 			if err != nil {
-				fmt.Println("JSON 解析发生错误", err)
+				log.E("JSON 解析发生错误", err)
 			}
 		},
 		Fail: func(status int, errMsg string) {
-			fmt.Println("网络连接失败-UserInfo")
-			fmt.Println("status:", status, ", errMsg:"+errMsg)
+			log.E("网络连接失败-UserInfo")
+			log.E("status:", status, ", errMsg:"+errMsg)
 
 		},
 		Always: nil,
@@ -199,13 +199,13 @@ func RefreshToken(refreshToken string, callback RefreshTokenCallback) {
 			//fmt.Println(response.Body)
 			err := json.Unmarshal([]byte(response.Body), &result)
 			if err != nil {
-				fmt.Println("JSON 解析发生错误", err)
+				log.E("JSON 解析发生错误", err)
 			}
 			callback(result.AccessToken, result.RefreshToken, result.DefaultDriveID)
 		},
 		Fail: func(status int, errMsg string) {
-			fmt.Println("网络连接失败-RefreshToken")
-			fmt.Println("status:", status, ", errMsg:"+errMsg)
+			log.E("网络连接失败-RefreshToken")
+			log.E("status:", status, ", errMsg:"+errMsg)
 
 		},
 		Always: nil,
@@ -247,12 +247,12 @@ func GetDownloadUrlByFileIdAndFileName(authorization string, driveId string, fil
 		Success: func(response *ajax.Response) {
 			err := json.Unmarshal([]byte(response.Body), &result)
 			if err != nil {
-				fmt.Println("JSON 解析发生错误", err)
+				log.E("JSON 解析发生错误", err)
 			}
 		},
 		Fail: func(status int, errMsg string) {
-			fmt.Println("网络连接失败-GetDownloadUrlByFileIdAndFileName")
-			fmt.Println("status:", status, ", errMsg:"+errMsg)
+			log.E("网络连接失败-GetDownloadUrlByFileIdAndFileName")
+			log.E("status:", status, ", errMsg:"+errMsg)
 		},
 		Always: nil,
 	})

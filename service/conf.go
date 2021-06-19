@@ -6,6 +6,7 @@ import (
 	"github.com/Ericwyn/Andex/api"
 	"github.com/Ericwyn/Andex/modal"
 	"github.com/Ericwyn/Andex/storage"
+	"github.com/Ericwyn/Andex/util/log"
 	"github.com/Ericwyn/GoTools/file"
 	"strings"
 	"time"
@@ -69,7 +70,7 @@ func readUserConfigFromFile() (*AndexUserConf, error) {
 
 	err = json.Unmarshal([]byte(logFile), &userConfNow)
 	if err != nil {
-		fmt.Println("读取用户配置文件错误", err)
+		log.E("读取用户配置文件错误", err)
 		return nil, err
 	}
 
@@ -92,7 +93,7 @@ func LoadConfFromFile() {
 	SysConfigNow.LastGetTokenTime = modal.GetConfig(modal.TypeLastGetTokenTime, time.Now()).(time.Time)
 
 	if SysConfigNow.RefreshToken == "NULL" {
-		fmt.Println("首次创建 sys conf")
+		log.I("首次创建 sys conf")
 		// 首次创建 sys conf，需要将 user config 保存到 db 里面
 
 		SysConfigNow.RefreshToken = UserConfNow.RefreshToken
@@ -105,16 +106,16 @@ func LoadConfFromFile() {
 		var err error
 		if SysConfigNow.RefreshToken != UserConfNow.RefreshToken {
 			SysConfigNow.RefreshToken = UserConfNow.RefreshToken
-			fmt.Println("同步 user 配置中 RefreshToken 至 sys 配置")
+			log.I("同步 user 配置中 RefreshToken 至 sys 配置")
 			err = modal.SaveConf(modal.TypeRefreshToken, SysConfigNow.RefreshToken)
 		}
 		if SysConfigNow.RootPath != UserConfNow.RootPath {
 			SysConfigNow.RootPath = UserConfNow.RootPath
-			fmt.Println("同步 user 配置中 RootPath 至 sys 配置")
+			log.I("同步 user 配置中 RootPath 至 sys 配置")
 			err = modal.SaveConf(modal.TypeRootPath, UserConfNow.RootPath)
 		}
 		if err != nil {
-			fmt.Println("同步 user 配置至 sys 时发生错误", err)
+			log.I("同步 user 配置至 sys 时发生错误", err)
 		}
 	}
 }

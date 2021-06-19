@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/Ericwyn/Andex/modal"
+	"github.com/Ericwyn/Andex/util/log"
 	"github.com/Ericwyn/GoTools/date"
 	"sort"
 	"strings"
@@ -80,11 +81,11 @@ func CheckRootPathSet() bool {
 
 	SysConfigNow.RootPath = FormatPathQuery(SysConfigNow.RootPath)
 
-	fmt.Println("检查 RootPath 设置:", SysConfigNow.RootPath)
+	log.I("检查 RootPath 设置:", SysConfigNow.RootPath)
 
 	pathSplit := strings.Split(SysConfigNow.RootPath, "/")
 	fileIdNow := "root"
-	fmt.Print("验证文件夹路径: ")
+	log.I("验证文件夹路径: ")
 	for _, pathName := range pathSplit {
 		if pathName == "" {
 			fileIdNow = "root"
@@ -96,20 +97,18 @@ func CheckRootPathSet() bool {
 
 		for _, fileMsg := range folderList.Items {
 			if fileMsg.Type == "folder" && fileMsg.Name == pathName {
-				fmt.Print(" -> ", fileMsg.Name)
+				log.I(" -> ", fileMsg.Name)
 				fileIdNow = fileMsg.FileID
 				pathFlag = true
 				break
 			}
 		}
 		if !pathFlag {
-			fmt.Println("文件夹路径", SysConfigNow.RootPath, "错误, 无法找到文件夹:", pathName)
+			log.E("文件夹路径", SysConfigNow.RootPath, "错误, 无法找到文件夹:", pathName)
 			return false
 		}
 	}
-	fmt.Println()
-	fmt.Println("文件夹路径验证成功, FileId:", fileIdNow)
-
+	log.I("文件夹路径验证成功, FileId:", fileIdNow)
 	driverRootPath = &modal.AndexPath{
 		Name:   "/",
 		FileId: fileIdNow,
@@ -120,17 +119,17 @@ func CheckRootPathSet() bool {
 	var err error
 	pathMapBuff, err = modal.LoadPathMap()
 	if err != nil {
-		fmt.Println("从数据库载入 path map 缓存失败:", err)
+		log.E("从数据库载入 path map 缓存失败:", err)
 		return false
 	}
 
 	// 看看本地缓存文件里面的 / 和 /root 其 fileId 与最新的是否一致
 	if _, ok := pathMapBuff["/"]; ok {
-		fmt.Println("旧 Root Path -> FileId:", pathMapBuff["/"].FileId)
-		fmt.Println("旧 Root Path -> FileId:", driverRootPath.FileId)
+		log.D("旧 Root Path -> FileId:", pathMapBuff["/"].FileId)
+		log.D("旧 Root Path -> FileId:", driverRootPath.FileId)
 		// 不一致的情况需要刷新 pathMap
 		if pathMapBuff["/"].FileId != driverRootPath.FileId {
-			fmt.Println("检测到 rootPath 设置已更新， 清除 path map 缓存")
+			log.I("检测到 rootPath 设置已更新， 清除 path map 缓存")
 			modal.DeleteAllPath()
 
 			pathMapBuff["/"] = modal.AndexPath{
@@ -150,10 +149,10 @@ func CheckRootPathSet() bool {
 
 			modal.SavePathMap(pathMapBuff)
 		} else {
-			fmt.Println("rootPath 设置未变更")
+			log.D("rootPath 设置未变更")
 		}
 	} else {
-		fmt.Println("无法从已有 pathMap 缓存当中找到根目录 FileId 设置")
+		log.D("无法从已有 pathMap 缓存当中找到根目录 FileId 设置")
 		// 如果 pathMap 压根没有 / 的映射
 		pathMapBuff["/"] = modal.AndexPath{
 			Path:     "/",
@@ -181,7 +180,7 @@ func IsPathTrue(path string) bool {
 
 	// 查找能否从 pathMap 里面找到这个 path 对应的 fileId
 	if _, ok := pathMapBuff[path]; !ok {
-		fmt.Println("无法从该路径找到对应的 fileId: ", path)
+		log.E("无法从该路径找到对应的 fileId: ", path)
 		return false
 	}
 	return true
@@ -256,7 +255,7 @@ func GetPathDetailFromAli(path string) ([]PathDetailBean, bool) {
 		SysConfigNow.DriveID,
 		pathMapBuff[path].FileId)
 	if folderList == nil || folderList.Items == nil {
-		fmt.Println("路径:", path, "获取 folderList 失败")
+		log.E("路径:", path, "获取 folderList 失败")
 		return nil, false
 	}
 
@@ -362,24 +361,24 @@ func GetNavPathList(path string) []NavPath {
 
 func SetPathPassword(path string, password string) bool {
 	if _, ok := pathMapBuff[path]; !ok {
-		fmt.Println("密码设置路径不存在", path)
+		log.E("密码设置路径不存在", path)
 		return false
 	}
 	// 密码设置是根据 fileId 设置，同个 fileId 的多个路径
 	paths, err := modal.GetAllSubPathsByFileId(pathMapBuff[path].FileId)
 	if err != nil {
-		fmt.Println("加密路径时候获取 AndexPath 失败", err)
+		log.E("加密路径时候获取 AndexPath 失败", err)
 		return false
 	} else {
 		newPaths := make([]modal.AndexPath, 0)
 		for _, pathTemp := range paths {
-			fmt.Println("密码设置路径:", pathTemp.Path, ", PW:", password)
+			log.I("密码设置路径:", pathTemp.Path, ", PW:", password)
 			pathTemp.Password = password
 			newPaths = append(newPaths, pathTemp)
 		}
 		err := modal.SaveAndexPathList(newPaths)
 		if err != nil {
-			fmt.Println("加密路径数据保存失败", err)
+			log.E("加密路径数据保存失败", err)
 			return false
 		} else {
 			// 更新到 map 缓存
