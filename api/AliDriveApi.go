@@ -178,13 +178,20 @@ func RefreshToken(refreshToken string, callback RefreshTokenCallback) {
 	var result *RefreshTokenBean = nil
 
 	ajax.Send(ajax.Request{
-		Url:    "https://websv.aliyundrive.com/token/refresh",
+		//Url:    "https://websv.aliyundrive.com/token/refresh", // 旧接口好像已经失效了？
+		Url:    "https://auth.aliyundrive.com/v2/account/token",
 		Method: ajax.POST,
 		Json: map[string]interface{}{
 			"refresh_token": refreshToken,
+			"grant_type":    "refresh_token",
 		},
 		Header: map[string]string{
-			"Content-Type": "application/json; charset=utf-8",
+			"Content-Type":    "application/json; charset=utf-8",
+			"origin":          "https://www.aliyundrive.com",
+			"accept":          "*/*",
+			"Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3",
+			"Connection":      "keep-alive",
+			"user-agent":      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36",
 		},
 		Success: func(response *ajax.Response) {
 			//fmt.Println("code:", response.Code)
