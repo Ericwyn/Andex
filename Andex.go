@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/Ericwyn/Andex/controller"
 	"github.com/Ericwyn/Andex/modal"
 	"github.com/Ericwyn/Andex/service"
@@ -19,9 +20,10 @@ import (
 var debugMode = flag.Bool("debug", false, "print sql log and gin debug log")
 
 func main() {
-
 	// TODO, 密码重置之后，用户的访问权限
 	flag.Parse()
+
+	printRunHead()
 
 	if *debugMode {
 		log.I("DEBUG 模式已打开")
@@ -132,4 +134,17 @@ func startServer() {
 		MaxHeaderBytes: 1 << 20,
 	}
 	_ = s.ListenAndServe()
+}
+
+func printRunHead() {
+	fmt.Println(`
+ ______     __   __     _____     ______     __  __    
+/\  __ \   /\ "-.\ \   /\  __-.  /\  ___\   /\_\_\_\   
+\ \  __ \  \ \ \-.  \  \ \ \/\ \ \ \  __\   \/_/\_\/_  
+ \ \_\ \_\  \ \_\\"\_\  \ \____-  \ \_____\   /\_\/\_\ 
+  \/_/\/_/   \/_/ \/_/   \/____/   \/_____/   \/_/\/_/
+
+Welcome to use Andex Version ` + service.AndexServerVersion + `
+Release in https://github.com/Ericwyn/Andex`)
+	fmt.Println()
 }

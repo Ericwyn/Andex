@@ -1,6 +1,14 @@
 # Andex
 
-一个将阿里网盘作为云盘分享的工具
+
+```
+ ______     __   __     _____     ______     __  __    
+/\  __ \   /\ "-.\ \   /\  __-.  /\  ___\   /\_\_\_\   
+\ \  __ \  \ \ \-.  \  \ \ \/\ \ \ \  __\   \/_/\_\/_  
+ \ \_\ \_\  \ \_\\"\_\  \ \____-  \ \_____\   /\_\/\_\ 
+  \/_/\/_/   \/_/ \/_/   \/____/   \/_____/   \/_/\/_/                                                       
+```
+Andex (Aliyun Index) 是一个将阿里网盘作为云盘分享的工具
 
 ## 配置文件
 
@@ -15,7 +23,12 @@
   "site_name": "Andex云盘"
 }
 ```
- - `refresh_token` 阿里云盘 refresh token
+ - `refresh_token` 阿里云盘 refresh token，获取方法如下
+    - (2021-06)
+        - 打开 [这个地址](https://passport.aliyundrive.com/mini_login.htm?lang=zh_cn&appName=aliyun_drive&appEntrance=web&styleType=auto&bizParams=&notLoadSsoView=false&notKeepLogin=false&isMobile=true&hidePhoneCode=true&rnd=0.9186864872885723)
+        - 输入用户名和密码，点击登录
+        - login.do 的返回结果中，去除 bizExt 内容 
+        - base64 解码，其中会有一个 refresh token 字段
  
  - `root_path` 云盘内文件夹的路径，如 `/public/Andex`， 该路径将会映射到 Andex 首页路径, 默认为 `/`, 即网盘根目录  
 
