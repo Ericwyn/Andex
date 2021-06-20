@@ -41,7 +41,7 @@ func initAPI(router *gin.Engine) {
 	router.POST("/pathPermRequest", apiPathPermRequest)
 }
 
-var staticDirAndPath = []string{"/css/", "/fonts/", "/icons/", "/js/", "/favicon.ico", "favicon.ico"}
+var staticDirAndPath = []string{"/css/", "/fonts/", "/icons/", "/js/", "/assets/", "/favicon.ico", "favicon.ico"}
 
 func isStaticPath(requestPath string) bool {
 	for _, staicPath := range staticDirAndPath {
