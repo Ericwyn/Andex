@@ -51,7 +51,14 @@ Andex (Aliyun Index) 是一个将阿里网盘作为云盘分享的工具
  - 文件/文件夹下载次数统计
  - ip 防护/黑名单防护
  
- ## 运行效果
+
+## Build
+
+clone 代码之后直接 `go build Andex.go` 就可以了
+
+构建得到的运行文件为 `./Andex` 或 `./Andex.exe`
+
+## 运行效果
 
 <img src="static/screenshot/screenshot1.png" style="width: 80%;margin-left: 10%" alt="图片1">
 

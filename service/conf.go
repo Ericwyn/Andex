@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const AndexServerVersion = "V1.2"
+const AndexServerVersion = "V1.3"
 
 const UserConfigFilePath = "config.json"
 
